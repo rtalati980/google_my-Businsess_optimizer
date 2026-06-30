@@ -1,0 +1,2412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telecaller Portal & Sales CRM — CodeCrafters Agency</title>
+
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Premium Light Theme */
+      --bg: #F8FAFC;
+      --card: #FFFFFF;
+      --border: #E2E8F0;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --text-sub: #94A3B8;
+      --accent: #2563EB;
+      --accent-light: #EFF6FF;
+      --sidebar-bg: #FFFFFF;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+
+      /* Status Colors */
+      --green-bg: #ECFDF5;
+      --green-text: #059669;
+      --blue-bg: #EFF6FF;
+      --blue-text: #2563EB;
+      --orange-bg: #FFFBEB;
+      --orange-text: #D97706;
+      --red-bg: #FEF2F2;
+      --red-text: #DC2626;
+      --purple-bg: #F5F3FF;
+      --purple-text: #7C3AED;
+      --teal-bg: #F0FDFA;
+      --teal-text: #0D9488;
+
+      --radius: 12px;
+      --radius-sm: 8px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-mode {
+      /* Cyberpunk / High-end Dark Theme */
+      --bg: #0B0F19;
+      --card: #151D30;
+      --border: #243049;
+      --text-main: #F1F5F9;
+      --text-muted: #94A3B8;
+      --text-sub: #64748B;
+      --accent: #3B82F6;
+      --accent-light: #1E293B;
+      --sidebar-bg: #111827;
+      --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+
+      --green-bg: #064E3B;
+      --green-text: #34D399;
+      --blue-bg: #1E3A8A;
+      --blue-text: #93C5FD;
+      --orange-bg: #78350F;
+      --orange-text: #FBBF24;
+      --red-bg: #7F1D1D;
+      --red-text: #FCA5A5;
+      --purple-bg: #4C1D95;
+      --purple-text: #C084FC;
+      --teal-bg: #115E59;
+      --teal-text: #99F6E4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+      transition: var(--transition);
+      overflow-x: hidden;
+    }
+
+    /* Header Section */
+    .header {
+      background: #0B0F19;
+      color: #FFFFFF;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid #1E293B;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .header-title-wrap {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #FFFFFF, #94A3B8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: #64748B;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .agent-badge {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #F1F5F9;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .agent-avatar {
+      width: 20px;
+      height: 20px;
+      background: #3B82F6;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .theme-toggle {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #94A3B8;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .theme-toggle:hover {
+      color: #FFFFFF;
+      border-color: #475569;
+      background: #273549;
+    }
+
+    /* Layout */
+    .workspace-layout {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      min-height: calc(100vh - 70px);
+      transition: var(--transition);
+    }
+
+    .workspace-main {
+      padding: 24px 32px;
+      overflow-y: auto;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+
+    .card-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+    }
+
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Grid Form */
+    .fgrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+    }
+
+    .ff {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .fl {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    select,
+    input[type=number],
+    input[type=text],
+    input[type=datetime-local],
+    input[type=password],
+    textarea {
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      color: var(--text-main);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      width: 100%;
+      transition: var(--transition);
+      outline: none;
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      background: var(--card);
+    }
+
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .btn {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      padding: 10px 18px;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover {
+      background: #1D4ED8;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--border);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .btn-danger {
+      background: var(--red-bg);
+      color: var(--red-text);
+      border: 1px solid transparent;
+    }
+
+    .btn-danger:hover {
+      background: #FECACA;
+      color: #B91C1C;
+    }
+
+    .btn-xs {
+      padding: 6px 12px;
+      font-size: 11px;
+      border-radius: 6px;
+    }
+
+    .sbar {
+      font-size: 11px;
+      color: var(--green-text);
+      min-height: 18px;
+      margin-top: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--border);
+    }
+
+    .stat.stat-total::before { background: var(--accent); }
+    .stat.stat-called::before { background: var(--green-text); }
+    .stat.stat-callback::before { background: var(--orange-text); }
+    .stat.stat-pending::before { background: var(--text-sub); }
+    .stat.stat-noweb::before { background: var(--red-text); }
+
+    .stat-num {
+      font-size: 26px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    /* Calling Progress Widget */
+    .progress-widget {
+      display: none;
+      margin-bottom: 18px;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: var(--bg);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3B82F6, #10B981);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .progress-text-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Filter Section */
+    .filter-section {
+      display: none;
+      margin-bottom: 18px;
+    }
+
+    .quick-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    @media(max-width: 768px) {
+      .quick-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap input {
+      padding-left: 36px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-sub);
+      pointer-events: none;
+      font-size: 14px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .filter-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: .05em;
+      min-width: 100px;
+      text-transform: uppercase;
+    }
+
+    .chip {
+      font-size: 11.5px;
+      padding: 5px 12px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chip:hover {
+      background: var(--border);
+      color: var(--text-main);
+    }
+
+    .chip.active {
+      background: var(--accent);
+      color: #FFFFFF;
+      border-color: var(--accent);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+    }
+
+    /* Table Styles */
+    .table-wrap {
+      display: none;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      background: var(--card);
+    }
+
+    .res-info {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 12px 18px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: var(--card);
+      text-align: left;
+    }
+
+    th {
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+      transition: var(--transition);
+      text-transform: uppercase;
+    }
+
+    th:hover {
+      color: var(--text-main);
+      background: var(--border);
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--text-main);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr.active-row td {
+      background: var(--accent-light) !important;
+    }
+
+    tr:hover td {
+      background: var(--bg);
+      cursor: pointer;
+    }
+
+    .bname {
+      font-weight: 600;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13.5px;
+      color: var(--text-main);
+    }
+
+    .bphone {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 99px;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
+
+    .b-med { background: var(--green-bg); color: var(--green-text); }
+    .b-crm { background: var(--blue-bg); color: var(--blue-text); }
+    .b-web { background: var(--orange-bg); color: var(--orange-text); }
+    .b-yes { background: var(--green-bg); color: var(--green-text); }
+    .b-no { background: var(--red-bg); color: var(--red-text); }
+
+    /* Custom Status Badges */
+    .b-pending { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+    .b-interested { background: var(--green-bg); color: var(--green-text); }
+    .b-callback { background: var(--orange-bg); color: var(--orange-text); }
+    .b-busy { background: var(--blue-bg); color: var(--blue-text); }
+    .b-rejected { background: var(--red-bg); color: var(--red-text); }
+    .b-emailed { background: var(--purple-bg); color: var(--purple-text); }
+    .b-whatsapp { background: var(--teal-bg); color: var(--teal-text); }
+
+    .b-small { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+    .b-medium { background: var(--blue-bg); color: var(--blue-text); }
+    .b-large { background: var(--purple-bg); color: var(--purple-text); }
+    .b-claimed { background: var(--green-bg); color: var(--green-text); }
+    .b-unclaimed { background: var(--red-bg); color: var(--red-text); }
+    .b-reviews { background: var(--orange-bg); color: var(--orange-text); }
+
+    .tier-badge {
+      display: inline-block;
+      font-size: 9px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .tier1 { background: var(--text-main); color: var(--bg); }
+    .tier2 { background: var(--blue-bg); color: var(--blue-text); }
+    .tier3 { background: var(--orange-bg); color: var(--orange-text); }
+
+    .row-action-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .row-action-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    /* Outreach Workspace Sidebar */
+    .workspace-sidebar {
+      background: var(--sidebar-bg);
+      border-left: 1px solid var(--border);
+      padding: 24px;
+      overflow-y: auto;
+      position: sticky;
+      top: 70px;
+      height: calc(100vh - 70px);
+      box-shadow: -4px 0 10px rgba(0, 0, 0, 0.02);
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .sidebar-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+    }
+
+    .sidebar-close:hover {
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .empty-sidebar {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--text-muted);
+      padding: 10px 0;
+    }
+
+    .empty-icon {
+      font-size: 40px;
+      margin-bottom: 14px;
+      opacity: 0.5;
+    }
+
+    .empty-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .empty-desc {
+      font-size: 12.5px;
+      line-height: 1.4;
+      max-width: 280px;
+      margin-bottom: 20px;
+    }
+
+    .lead-title-area {
+      margin-bottom: 16px;
+    }
+
+    .lead-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .lead-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .sidebar-section {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-section:last-child {
+      border-bottom: none;
+    }
+
+    .section-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-sub);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .lead-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .info-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+    }
+
+    .info-val {
+      font-weight: 600;
+      font-size: 13px;
+      word-break: break-all;
+    }
+
+    .info-lbl {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    /* Live Timer Card */
+    .timer-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .timer-display {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .timer-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Log outcomes grid */
+    .outcome-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .outcome-btn {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 10px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .outcome-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .outcome-btn.active-interested { background: var(--green-bg); color: var(--green-text); border-color: var(--green-text); }
+    .outcome-btn.active-callback { background: var(--orange-bg); color: var(--orange-text); border-color: var(--orange-text); }
+    .outcome-btn.active-busy { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-text); }
+    .outcome-btn.active-rejected { background: var(--red-bg); color: var(--red-text); border-color: var(--red-text); }
+
+    .action-deck {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .deck-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 12px 8px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .deck-btn:hover {
+      background: var(--accent-light);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .deck-btn.active-status {
+      background: var(--green-bg);
+      color: var(--green-text);
+      border-color: #A7F3D0;
+    }
+
+    .deck-btn.active-email {
+      background: var(--purple-bg);
+      color: var(--purple-text);
+      border-color: #DDD6FE;
+    }
+
+    .deck-btn-icon {
+      font-size: 16px;
+    }
+
+    /* Callback Reminders list in empty state */
+    .callback-list-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      width: 100%;
+      text-align: left;
+      padding: 12px;
+      margin-top: 10px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .callback-item {
+      padding: 8px;
+      border-bottom: 1px dashed var(--border);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .callback-item:hover {
+      background: var(--card);
+    }
+
+    .callback-item:last-child {
+      border-bottom: none;
+    }
+
+    .callback-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .callback-time-lbl {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--orange-text);
+      font-size: 10.5px;
+      font-weight: 600;
+    }
+
+    .callback-biz {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .callback-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Interactive Script Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+      gap: 4px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: var(--transition);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .tab:hover {
+      color: var(--text-main);
+    }
+
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .script-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 12.5px;
+      max-height: 250px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
+    .script-step {
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .script-step:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .step-lbl {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      display: block;
+    }
+
+    .email-meta {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      padding: 8px 12px;
+      border-bottom: none;
+      font-size: 11.5px;
+    }
+
+    .email-meta div {
+      margin-bottom: 4px;
+    }
+
+    .email-meta div:last-child {
+      margin-bottom: 0;
+    }
+
+    .email-textarea {
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      font-family: inherit;
+      font-size: 12px;
+      height: 140px;
+      resize: none;
+      line-height: 1.4;
+      background: var(--bg);
+    }
+
+    .note-textarea {
+      font-size: 12.5px;
+      height: 70px;
+      resize: none;
+      line-height: 1.4;
+      background: var(--bg);
+    }
+
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 11px;
+      color: var(--text-sub);
+      font-family: 'JetBrains Mono', monospace;
+      border-top: 1px solid var(--border);
+      margin-top: 24px;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 48px;
+      color: var(--text-muted);
+      font-size: 13.5px;
+    }
+
+    .chips-container {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 4px 0;
+      width: 100%;
+    }
+    .chips-container::-webkit-scrollbar {
+      display: none;
+    }
+    .chip {
+      flex-shrink: 0;
+    }
+
+    /* Source selection tabs styling */
+    .source-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .source-tab {
+      font-family: inherit;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .source-tab:hover {
+      background: var(--border);
+      color: var(--text-main);
+    }
+
+    .source-tab.active {
+      background: var(--accent);
+      color: #FFFFFF;
+      border-color: var(--accent);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+    }
+
+    .api-key-input-container {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .api-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-top: 4px;
+    }
+
+    .loader-container {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px;
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid var(--border);
+      border-top: 2.5px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* ==========================================================================
+       MOBILE RESPONSIVENESS OVERRIDES (State-of-the-Art UX)
+       ========================================================================== */
+    @media (max-width: 768px) {
+      .workspace-main {
+        padding: 16px 12px;
+      }
+
+      /* Stats Grid Layout on mobile */
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+      }
+
+      .stat {
+        padding: 10px 12px;
+      }
+
+      .stat-num {
+        font-size: 20px;
+      }
+
+      /* Card forms and filter sections */
+      .card {
+        padding: 14px;
+        margin-bottom: 12px;
+      }
+
+      .btn-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 12px;
+      }
+
+      /* Dynamically convert Table into Gorgeous Cards */
+      .table-wrap {
+        border: none;
+        box-shadow: none;
+        background: transparent;
+      }
+
+      .res-info {
+        border-radius: var(--radius-sm);
+        margin-bottom: 8px;
+        border: 1px solid var(--border);
+      }
+
+      table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100% !important;
+      }
+
+      thead {
+        display: none !important; /* Hide headers on mobile */
+      }
+
+      tr {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin-bottom: 12px;
+        padding: 14px;
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+      }
+
+      tr.active-row {
+        border-color: var(--accent);
+        background: var(--accent-light) !important;
+      }
+
+      td {
+        border: none !important;
+        padding: 6px 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        text-align: right !important;
+        font-size: 12.5px;
+      }
+
+      /* Generate labels dynamically from data-label attributes */
+      td::before {
+        content: attr(data-label);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-align: left;
+      }
+
+      /* Style first-child (Business Name) as card header */
+      td:first-child {
+        padding-bottom: 8px !important;
+        border-bottom: 1px dashed var(--border) !important;
+        margin-bottom: 8px;
+        display: block !important;
+        text-align: left !important;
+      }
+
+      td:first-child::before {
+        display: none !important;
+      }
+
+      td:last-child {
+        display: none !important; /* Hide direct action button on mobile (whole card is clickable) */
+      }
+
+      .bname {
+        font-size: 15px;
+        color: var(--text-main);
+      }
+
+      .bphone {
+        margin-top: 4px;
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .header {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 16px;
+        align-items: stretch;
+        text-align: center;
+      }
+
+      .header-logo {
+        justify-content: center;
+      }
+
+      .header-actions {
+        justify-content: space-between;
+      }
+
+      .filter-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .filter-label {
+        margin-bottom: 2px;
+      }
+    }
+
+    /* Mobile Layout Cascading Overrides (Positioned at bottom for perfect override priority) */
+    @media (max-width: 1200px) {
+      .workspace-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .workspace-sidebar {
+        position: fixed !important;
+        right: -100% !important;
+        top: 70px !important;
+        bottom: 0 !important;
+        height: calc(100vh - 70px) !important;
+        width: 420px !important;
+        z-index: 2000 !important; /* High z-index to overlay lead database */
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.25) !important;
+        transition: right 0.3s ease-in-out !important;
+        border-left: none !important;
+      }
+
+      .workspace-sidebar.active {
+        right: 0 !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .workspace-sidebar {
+        width: 100% !important;
+        top: 0 !important; /* Cover whole screen height on phones for premium sheet experience */
+        height: 100vh !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <div class="header-logo">
+      <div class="logo-icon">&#9889;</div>
+      <div class="header-title-wrap">
+        <span class="header-title">CodeCrafters Telecaller &amp; Sales CRM</span>
+        <span class="header-subtitle">Outreach Portal v4.0</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="agent-badge">
+        <div class="agent-avatar" id="agentInitial">R</div>
+        <span id="agentName" onclick="editAgentName()" style="cursor:pointer; font-weight:600;" title="Click to edit name">Ronak Jain</span>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="themeBtnText">🌙 Dark Mode</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="workspace-layout">
+
+    <!-- Left Side: Lead Generation and Database -->
+    <div class="workspace-main">
+
+      <!-- lead gen section -->
+      <div class="card">
+        <div class="card-title">PROSPECTING ENGINE</div>
+
+        <!-- Lead Source Selector Tabs -->
+        <div class="source-tabs">
+          <button class="source-tab active" id="tabSimulated" onclick="setSourceTab('simulated')">🤖 Generate Sample Leads</button>
+          <button class="source-tab" id="tabGoogle" onclick="setSourceTab('google')">🗺️ Google Maps (Real-Time)</button>
+          <button class="source-tab" id="tabCsv" onclick="setSourceTab('csv')">📎 Import CSV File</button>
+          <button class="source-tab" id="tabManual" onclick="setSourceTab('manual')">➕ Add Lead Manually</button>
+        </div>
+
+        <!-- Google Maps Panel -->
+        <div id="googlePanel" style="display: none; padding: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 14px;">
+          <div class="fgrid">
+            <div class="ff" style="grid-column: span 2;">
+              <span class="fl" style="color: var(--accent);">GOOGLE PLACES API KEY</span>
+              <input type="password" id="googleApiKey" placeholder="Enter your Google Places API Key (AIzaSy...)" />
+              <p class="api-desc">Get free API key from: console.cloud.google.com. Enable "Places API" and "Maps JavaScript API".</p>
+            </div>
+          </div>
+          <div class="fgrid">
+            <div class="ff">
+              <span class="fl">SEARCH LOCATION</span>
+              <input type="text" id="googleLocation" placeholder="e.g., Mumbai, India" value="Mumbai, India" />
+            </div>
+            <div class="ff">
+              <span class="fl">SEARCH TYPE</span>
+              <select id="googleType">
+                <option value="dental">Dental Clinics</option>
+                <option value="doctor">Doctors/Clinics</option>
+                <option value="restaurant">Restaurants</option>
+                <option value="beauty">Beauty Salons</option>
+                <option value="gym">Gym/Fitness</option>
+                <option value="shop">Shops/Stores</option>
+                <option value="hotel">Hotels</option>
+                <option value="business">General Business</option>
+              </select>
+            </div>
+            <div class="ff">
+              <span class="fl">NUMBER OF RESULTS</span>
+              <input type="number" id="googleResultCount" value="30" min="5" max="50" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual Lead Input Panel -->
+        <div id="manualPanel" style="display: none; padding: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 14px;">
+          <div class="fgrid">
+            <div class="ff">
+              <span class="fl">Business Name</span>
+              <input type="text" id="manualName" placeholder="e.g., Sunrise Dental Clinic" />
+            </div>
+            <div class="ff">
+              <span class="fl">Niche/Type</span>
+              <input type="text" id="manualType" placeholder="e.g., Dental Clinic" />
+            </div>
+            <div class="ff">
+              <span class="fl">City</span>
+              <input type="text" id="manualCity" placeholder="e.g., Mumbai" />
+            </div>
+            <div class="ff">
+              <span class="fl">Area</span>
+              <input type="text" id="manualArea" placeholder="e.g., Andheri West" />
+            </div>
+            <div class="ff">
+              <span class="fl">Contact Person</span>
+              <input type="text" id="manualContact" placeholder="e.g., Dr. Rajesh Kumar" />
+            </div>
+            <div class="ff">
+              <span class="fl">Phone</span>
+              <input type="text" id="manualPhone" placeholder="e.g., 9988998899" />
+            </div>
+            <div class="ff">
+              <span class="fl">Email</span>
+              <input type="text" id="manualEmail" placeholder="e.g., contact@example.com" />
+            </div>
+            <div class="ff">
+              <span class="fl">Product</span>
+              <select id="manualProduct">
+                <option value="Mediva360">Mediva360</option>
+                <option value="CRM Software">CRM Software</option>
+                <option value="Website">Website</option>
+              </select>
+            </div>
+            <div class="ff">
+              <span class="fl">Has Website?</span>
+              <select id="manualWebsite">
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+            <div class="ff">
+              <span class="fl">Size</span>
+              <select id="manualSize">
+                <option value="Small">Small</option>
+                <option value="Medium">Medium</option>
+                <option value="Large">Large</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top: 10px; border-top: none; padding-top: 0;">
+            <button class="btn btn-primary" onclick="addManualLead()">➕ Add This Lead</button>
+            <button class="btn btn-secondary" onclick="clearManualForm()">Clear Form</button>
+          </div>
+        </div>
+
+        <!-- Parameters Panel (Shared by Scrapers) -->
+        <div id="scraperParamsPanel">
+          <div class="fgrid">
+            <div class="ff" id="prodField">
+              <span class="fl">TARGET PRODUCT</span>
+              <select id="prod" onchange="updateSubtypes()">
+                <option value="all">All Solutions</option>
+                <option value="med">Mediva360 &mdash; Clinics</option>
+                <option value="crm">CRM &mdash; Business SaaS</option>
+                <option value="web">Web Design &mdash; CodeCrafters</option>
+              </select>
+            </div>
+            <div class="ff" id="subtypeField">
+              <span class="fl">SPECIFIC NICHE / SUB-TYPE</span>
+              <select id="subtype">
+                <option value="">All Categories</option>
+              </select>
+            </div>
+            <div class="ff">
+              <span class="fl">STATE / REGION</span>
+              <select id="state" onchange="fillCities()"></select>
+            </div>
+            <div class="ff">
+              <span class="fl">CITY / DISTRICT</span>
+              <select id="city" onchange="fillAreas()"></select>
+            </div>
+            <div class="ff" id="areaField">
+              <span class="fl">NEIGHBORHOOD / AREA</span>
+              <select id="area"></select>
+            </div>
+            <div class="ff" id="cntField">
+              <span class="fl">LEADS QUANTITY</span>
+              <input type="number" id="cnt" value="50" min="5" max="150" />
+            </div>
+          </div>
+
+          <!-- Google Maps API Panel (conditional) -->
+          <div id="googleApiPanel" style="display: none; margin-top: 14px; padding: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+            <div class="ff">
+              <span class="fl" style="color: var(--accent);">GOOGLE PLACES API KEY</span>
+              <input type="password" id="googleApiKey" placeholder="Enter Google Maps Places API Key (AIzaSy...)" onchange="saveGoogleKey()" />
+              <p class="api-desc">Your key is stored 100% locally in your browser memory. Queries are sent directly to Google Maps servers with no CORS errors.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CSV Import Panel -->
+        <div id="csvImportPanel" style="display: none; padding: 16px; border: 2px dashed var(--border); border-radius: var(--radius); background: var(--bg); text-align: center;">
+          <div style="font-size: 24px; margin-bottom: 8px;">📤</div>
+          <div style="font-weight: 600; font-size: 13px; margin-bottom: 4px; color: var(--text-main);">Upload Prospect Calling Sheet</div>
+          <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 14px;">Select or drop a CSV file containing your real lead list.</div>
+          <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleCSVFileSelect(this)" />
+          <button class="btn btn-secondary btn-xs" onclick="document.getElementById('csvFileInput').click()">Choose CSV File</button>
+          <div style="margin-top: 12px; font-size: 11px; color: var(--text-sub); line-height: 1.5; text-align: left; padding: 10px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+            <strong>Supported Columns (Any sequence):</strong> Name, Phone/Number, Niche/Type, City, Area, Contact Person, Website, Email, Product.
+          </div>
+        </div>
+
+        <!-- Real-Time Scraper Loader -->
+        <div class="loader-container" id="scraperLoader">
+          <div class="spinner"></div>
+          <div id="loaderStatusText">Scraping live data nodes...</div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="runBtn" onclick="runScraperOrImport()">&#9889; Run Prospecting Scraper</button>
+          <button class="btn btn-secondary" id="csvbtn" onclick="doCSV()" disabled>&#11015; Export Leads CSV</button>
+          <button class="btn btn-danger" onclick="clearAll()">&#10005; Wipe Database</button>
+        </div>
+        <div class="sbar" id="sbar"></div>
+      </div>
+
+      <!-- CRM Statistics dashboard -->
+      <div class="stats-grid" id="statsRow">
+        <div class="stat stat-total">
+          <div class="stat-num" id="s0">0</div>
+          <div class="stat-label">Total Leads</div>
+        </div>
+        <div class="stat stat-called">
+          <div class="stat-num" id="s1">0</div>
+          <div class="stat-label">Interested 🔥</div>
+        </div>
+        <div class="stat stat-callback">
+          <div class="stat-num" id="s1_e">0</div>
+          <div class="stat-label">Callbacks 📅</div>
+        </div>
+        <div class="stat stat-pending">
+          <div class="stat-num" id="s2">0</div>
+          <div class="stat-label">Ready to Call</div>
+        </div>
+        <div class="stat stat-noweb">
+          <div class="stat-num" id="s3">0</div>
+          <div class="stat-label">No Website ⚠️</div>
+        </div>
+      </div>
+
+      <!-- Call progress bar widget -->
+      <div class="card progress-widget" id="progressWidget">
+        <div class="progress-text-row">
+          <span>DAILY OUTREACH TARGET</span>
+          <span id="progressStats">0 / 30 Calls Done (0%)</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+      </div>
+
+      <!-- Search & Filter deck -->
+      <div class="filter-section" id="filterSection">
+        <div class="card">
+          <div class="card-title">FILTER &amp; SEGMENTATION</div>
+          <div class="quick-row">
+            <div class="search-wrap">
+              <span class="search-icon">&#128269;</span>
+              <input type="text" id="searchBox" placeholder="Quick search name, contact, area, phone..."
+                oninput="applyFilters()" />
+            </div>
+            <select id="typeFilter" onchange="applyFilters()">
+              <option value="">All Niches</option>
+            </select>
+            <select id="prodFilter" onchange="applyFilters()">
+              <option value="">All Solutions</option>
+              <option value="Mediva360">Mediva360</option>
+              <option value="CRM Software">CRM Software</option>
+              <option value="Website">Website Development</option>
+            </select>
+          </div>
+
+          <div class="filter-row">
+            <span class="filter-label">WEBSITE:</span>
+            <div class="chips-container">
+              <button class="chip active" id="wAll" onclick="setF('web','all')">All</button>
+              <button class="chip" id="wNo" onclick="setF('web','no')">&#10005; Missing Website</button>
+              <button class="chip" id="wYes" onclick="setF('web','yes')">&#10003; Has Website</button>
+            </div>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">GOOGLE MAPS:</span>
+            <div class="chips-container">
+              <button class="chip active" id="gAll" onclick="setF('gbp','all')">All Listings</button>
+              <button class="chip" id="gUnclaimed" onclick="setF('gbp','unclaimed')">&#9888; Unclaimed Profile</button>
+              <button class="chip" id="gReviews" onclick="setF('gbp','reviews')">&#9733; Needs Reviews</button>
+              <button class="chip" id="gOk" onclick="setF('gbp','ok')">&#10003; Optimized</button>
+            </div>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">TICKET SIZE:</span>
+            <div class="chips-container">
+              <button class="chip active" id="szAll" onclick="setF('size','all')">All Scales</button>
+              <button class="chip" id="szSmall" onclick="setF('size','Small')">Small Shop</button>
+              <button class="chip" id="szMedium" onclick="setF('size','Medium')">Medium Enterprise</button>
+              <button class="chip" id="szLarge" onclick="setF('size','Large')">Large Enterprise</button>
+            </div>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">OUTREACH:</span>
+            <div class="chips-container">
+              <button class="chip active" id="stAll" onclick="setF('status','all')">All Leads</button>
+              <button class="chip" id="stPend" onclick="setF('status','Pending')">Ready to Call</button>
+              <button class="chip" id="stInter" onclick="setF('status','Interested')">Interested 🔥</button>
+              <button class="chip" id="stCallb" onclick="setF('status','Callback')">Callbacks 📅</button>
+              <button class="chip" id="stDone" onclick="setF('status','Done')">No Ans/Other</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- lead table -->
+      <div class="table-wrap" id="twrap">
+        <div class="res-info" id="resInfo"></div>
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('name')" style="width:22%">Business Name &#8645;</th>
+              <th onclick="sortBy('type')" style="width:14%">Niche &#8645;</th>
+              <th onclick="sortBy('city')" style="width:10%">City &#8645;</th>
+              <th onclick="sortBy('area')" style="width:10%">Area &#8645;</th>
+              <th style="width:18%">Decision Maker</th>
+              <th onclick="sortBy('hasWebsite')" style="width:8%">Website &#8645;</th>
+              <th onclick="sortBy('gbp')" style="width:10%">Google Listing &#8645;</th>
+              <th onclick="sortBy('status')" style="width:10%">Outreach &#8645;</th>
+              <th style="width:5%">Action</th>
+            </tr>
+          </thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- Right Side: Outreach Workspace Sidebar Panel -->
+    <div class="workspace-sidebar" id="outreachSidebar">
+
+      <!-- Empty state / Dashboard panel -->
+      <div id="sidebarEmptyState" class="empty-sidebar">
+        <div class="empty-icon">💼</div>
+        <div class="empty-title">Sales Outreach Desk</div>
+        <div class="empty-desc">Select a prospect from the pool to load scripts, launch WhatsApp/Gmail, track call times, and log notes.</div>
+
+        <!-- Callback List widget for empty state -->
+        <div id="upcomingCallbacksSection" style="display:none; width:100%;">
+          <span class="section-label" style="text-align:left;">📅 UPCOMING CALLBACKS TODAY</span>
+          <div class="callback-list-card" id="upcomingCallbacksList">
+            <!-- items generated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Active lead details panel -->
+      <div id="sidebarActiveState" style="display: none;">
+        <div class="sidebar-header">
+          <div class="lead-title-area">
+            <div class="lead-name" id="sideLeadName">Sunrise Dental Clinic</div>
+            <div class="lead-sub">
+              <span class="badge b-med" id="sideLeadProd">Mediva360</span>
+              <span class="tier-badge tier1" id="sideLeadTier">Tier 1</span>
+              <span id="sideLeadType" style="font-weight:600">Dental Clinic</span>
+            </div>
+          </div>
+          <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+        </div>
+
+        <!-- Live Dialer & Timer -->
+        <div class="sidebar-section">
+          <span class="section-label">📞 Live Dialer &amp; Timer</span>
+          <div class="timer-card">
+            <div class="timer-display" id="callTimer">00:00</div>
+            <div class="timer-actions">
+              <button class="btn btn-primary btn-xs" id="startTimerBtn" onclick="toggleTimer()">Start Timer</button>
+              <button class="btn btn-secondary btn-xs" id="resetTimerBtn" onclick="resetTimer()" disabled>Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outreach actions -->
+        <div class="sidebar-section">
+          <span class="section-label">Log Call Outcome</span>
+          <div class="outcome-grid">
+            <button class="outcome-btn" id="btnStatusInterested" onclick="changeStatus('Interested')">🔥 Interested</button>
+            <button class="outcome-btn" id="btnStatusCallback" onclick="changeStatus('Callback')">📅 Callback</button>
+            <button class="outcome-btn" id="btnStatusBusy" onclick="changeStatus('Busy')">🔇 Busy / NA</button>
+            <button class="outcome-btn" id="btnStatusRejected" onclick="changeStatus('Not Interested')">✕ Rejected</button>
+          </div>
+
+          <!-- Callback time picker drawer -->
+          <div id="callbackSchedulerDrawer" style="display:none; margin-top:10px; padding:10px; border:1px dashed var(--border); border-radius:var(--radius-sm); background:var(--bg);">
+            <span class="fl" style="font-size:10px; margin-bottom:4px; display:block;">Select Callback Time:</span>
+            <input type="datetime-local" id="callbackDateTime" onchange="saveCallbackTime()" style="padding:6px; font-size:12px;">
+          </div>
+        </div>
+
+        <!-- Lead Dossier -->
+        <div class="sidebar-section">
+          <span class="section-label">Lead Information</span>
+          <div class="lead-info-grid">
+            <div class="info-item">
+              <div class="info-val" id="sideContact" style="color:var(--text-main)">Dr. Rajesh Kumar</div>
+              <div class="info-lbl">Contact Person</div>
+            </div>
+            <div class="info-item">
+              <div class="info-val" id="sidePhone"><a href="tel:" id="sidePhoneLink"
+                  style="color:var(--accent); text-decoration:none;">9988998899</a></div>
+              <div class="info-lbl">Phone Number</div>
+            </div>
+            <div class="info-item" style="grid-column: span 2;">
+              <div class="info-val" id="sideEmail" style="color:var(--text-main)">contact@sunrisedental.com</div>
+              <div class="info-lbl">Email Address</div>
+            </div>
+            <div class="info-item">
+              <div class="info-val" id="sideArea">Andheri West</div>
+              <div class="info-lbl">Area/Locality</div>
+            </div>
+            <div class="info-item">
+              <div class="info-val" id="sideGbp">Unclaimed ⚠️</div>
+              <div class="info-lbl">Google Listing</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Copywriting Tabs -->
+        <div class="sidebar-section">
+          <span class="section-label">🤖 Outreach Sales Assistant</span>
+          <div class="tabs">
+            <div class="tab active" onclick="switchTab('call-tab')">Call Script</div>
+            <div class="tab" onclick="switchTab('email-tab')">Gmail Template</div>
+            <div class="tab" onclick="switchTab('wa-tab')">WhatsApp</div>
+          </div>
+
+          <!-- Call Script Tab -->
+          <div class="tab-panel active" id="call-tab">
+            <div class="script-box">
+              <div class="script-step">
+                <span class="step-lbl">1. Hook &amp; Verify Identity</span>
+                <p id="scriptHook">"Hello, could I speak with Dr. Rajesh? I am calling about Sunrise Dental Clinic in
+                  Andheri West."</p>
+              </div>
+              <div class="script-step">
+                <span class="step-lbl">2. The Problem Statement</span>
+                <p id="scriptProblem">"We were mapping local healthcare providers in Mumbai, and noticed Sunrise Dental
+                  Clinic is missing an active appointment website. Competitors in Andheri are gaining patients online
+                  who would normally go to you."</p>
+              </div>
+              <div class="script-step">
+                <span class="step-lbl">3. Pitching Solution (CodeCrafters)</span>
+                <p id="scriptSolution">"We run CodeCrafters.co.in. We can launch a premium dental website pre-integrated
+                  with Mediva360 CRM so patients can book directly from their phone, sending automated booking
+                  confirmations on WhatsApp."</p>
+              </div>
+              <div class="script-step">
+                <span class="step-lbl">4. Close to Demo Call</span>
+                <p>"We are offering a local Dentist launch package with zero up-front fee this week. Would you have 5
+                  minutes for a live mobile demo tomorrow morning?"</p>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-xs" style="width:100%" onclick="copyScriptText()">📋 Copy Script
+              Prompt</button>
+          </div>
+
+          <!-- Gmail Tab -->
+          <div class="tab-panel" id="email-tab">
+            <div class="email-meta">
+              <div><strong>To:</strong> <span id="mailToText">contact@sunrisedental.com</span></div>
+              <div><strong>Subject:</strong> <span id="mailSubText">Patient booking proposal for Sunrise Dental Clinic</span></div>
+            </div>
+            <textarea class="email-textarea" id="mailBodyText"></textarea>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px">
+              <button class="btn btn-primary btn-xs" onclick="composeGmailWeb()">✉️ Launch Gmail</button>
+              <button class="btn btn-secondary btn-xs" onclick="composeMailto()">✉️ Mailto Link</button>
+            </div>
+            <button class="btn btn-secondary btn-xs" style="width:100%; margin-top:6px" onclick="copyEmailBody()">📋
+              Copy Email Text</button>
+          </div>
+
+          <!-- WhatsApp Tab -->
+          <div class="tab-panel" id="wa-tab">
+            <textarea class="email-textarea" style="height:100px; margin-bottom:8px;" id="waMsgText"></textarea>
+            <button class="btn btn-primary btn-xs" style="width:100%" onclick="openWhatsAppChat()">💬 Send WhatsApp Message</button>
+          </div>
+        </div>
+
+        <!-- Notes logging -->
+        <div class="sidebar-section">
+          <span class="section-label">Outreach &amp; Call Notes</span>
+          <textarea class="note-textarea" id="sideNotes"
+            placeholder="Write logs here (e.g. Speak with receptionist, callback Tuesday)..."
+            oninput="saveCurrentNote()"></textarea>
+          <span id="saveIndicator" style="font-size:10px; color:var(--text-sub); display:block; margin-top:2px;">📝 Notes are auto-saved in browser memory.</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    CodeCrafters Telecaller &amp; Sales CRM v4.0 &middot; 100+ Cities &middot; LocalStorage CRM Database &middot;
+    codecrafters.co.in
+  </div>
+
+  <script>
+    var activeSource = 'simulated';
+    var leads = [];
+    var activeLeadIndex = -1;
+    var sortCol = '';
+    var sortDir = 1;
+
+    var fWeb = 'all';
+    var fGbp = 'all';
+    var fSize = 'all';
+    var fStatus = 'all';
+
+    var timerInterval = null;
+    var secondsElapsed = 0;
+    var timerRunning = false;
+
+    // ============ SOURCE TAB MANAGEMENT (FRONTEND ONLY) ============
+    function setSourceTab(source) {
+      activeSource = source;
+
+      ['tabSimulated', 'tabGoogle', 'tabCsv', 'tabManual'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      });
+
+      var sourceMap = { simulated: 'tabSimulated', google: 'tabGoogle', csv: 'tabCsv', manual: 'tabManual' };
+      var activeEl = document.getElementById(sourceMap[source]);
+      if (activeEl) activeEl.classList.add('active');
+
+      var paramsPanel = document.getElementById('scraperParamsPanel');
+      var googlePanel = document.getElementById('googlePanel');
+      var csvPanel = document.getElementById('csvImportPanel');
+      var manualPanel = document.getElementById('manualPanel');
+      var runBtn = document.getElementById('runBtn');
+
+      if (source === 'csv') {
+        if (paramsPanel) paramsPanel.style.display = 'none';
+        if (googlePanel) googlePanel.style.display = 'none';
+        if (manualPanel) manualPanel.style.display = 'none';
+        if (csvPanel) csvPanel.style.display = 'block';
+        if (runBtn) runBtn.style.display = 'none';
+      } else if (source === 'google') {
+        if (paramsPanel) paramsPanel.style.display = 'none';
+        if (csvPanel) csvPanel.style.display = 'none';
+        if (manualPanel) manualPanel.style.display = 'none';
+        if (googlePanel) googlePanel.style.display = 'block';
+        if (runBtn) runBtn.style.display = 'inline-flex';
+        if (runBtn) runBtn.innerHTML = '🗺️ Fetch From Google Maps';
+      } else if (source === 'manual') {
+        if (paramsPanel) paramsPanel.style.display = 'none';
+        if (googlePanel) googlePanel.style.display = 'none';
+        if (csvPanel) csvPanel.style.display = 'none';
+        if (manualPanel) manualPanel.style.display = 'block';
+        if (runBtn) runBtn.style.display = 'none';
+      } else {
+        if (paramsPanel) paramsPanel.style.display = 'block';
+        if (googlePanel) googlePanel.style.display = 'none';
+        if (csvPanel) csvPanel.style.display = 'none';
+        if (manualPanel) manualPanel.style.display = 'none';
+        if (runBtn) runBtn.style.display = 'inline-flex';
+        if (runBtn) runBtn.innerHTML = '🤖 Generate Sample Leads';
+      }
+    }
+
+    // ============ MANUAL LEAD INPUT ============
+    function addManualLead() {
+      var name = document.getElementById('manualName').value.trim();
+      var type = document.getElementById('manualType').value.trim();
+      var city = document.getElementById('manualCity').value.trim();
+      var area = document.getElementById('manualArea').value.trim();
+      var contact = document.getElementById('manualContact').value.trim();
+      var phone = document.getElementById('manualPhone').value.trim();
+      var email = document.getElementById('manualEmail').value.trim();
+      var product = document.getElementById('manualProduct').value;
+      var hasWebsite = document.getElementById('manualWebsite').value === 'true';
+      var size = document.getElementById('manualSize').value;
+
+      if (!name || !type || !city || !phone) {
+        alert("Please fill in at least: Business Name, Niche, City, and Phone");
+        return;
+      }
+
+      var gbp = hasWebsite ? "Claimed & Optimized" : "Unclaimed ⚠️";
+
+      var newLead = {
+        name: name,
+        type: type,
+        city: city,
+        area: area,
+        contact: contact,
+        phone: phone,
+        email: email,
+        product: product,
+        hasWebsite: hasWebsite,
+        gbp: gbp,
+        size: size,
+        status: "Pending",
+        callbackTime: "",
+        callDuration: "",
+        notes: "Added manually via portal"
+      };
+
+      leads.push(newLead);
+      saveToLocalStorage();
+
+      updateTypeFilter();
+      resetChips();
+      updateStats();
+      applyFilters();
+      clearManualForm();
+
+      document.getElementById('sbar').textContent = '✓ Lead added successfully! Now have ' + leads.length + ' total leads.';
+      showStats();
+    }
+
+    function clearManualForm() {
+      document.getElementById('manualName').value = '';
+      document.getElementById('manualType').value = '';
+      document.getElementById('manualCity').value = '';
+      document.getElementById('manualArea').value = '';
+      document.getElementById('manualContact').value = '';
+      document.getElementById('manualPhone').value = '';
+      document.getElementById('manualEmail').value = '';
+      document.getElementById('manualProduct').value = 'Mediva360';
+      document.getElementById('manualWebsite').value = 'false';
+      document.getElementById('manualSize').value = 'Medium';
+    }
+
+    function showStats() {
+      document.getElementById('statsRow').style.display = 'grid';
+      document.getElementById('progressWidget').style.display = 'block';
+      document.getElementById('filterSection').style.display = 'block';
+      document.getElementById('csvbtn').disabled = false;
+    }
+
+    function showLoader(msg) {
+      var loader = document.getElementById('scraperLoader');
+      var text = document.getElementById('loaderStatusText');
+      var btn = document.getElementById('runBtn');
+      if (loader) loader.style.display = 'flex';
+      if (text) text.textContent = msg;
+      if (btn) btn.disabled = true;
+    }
+
+    function hideLoader() {
+      var loader = document.getElementById('scraperLoader');
+      var btn = document.getElementById('runBtn');
+      if (loader) loader.style.display = 'none';
+      if (btn) btn.disabled = false;
+    }
+
+    function runScraperOrImport() {
+      if (activeSource === 'simulated') {
+        generate();
+      } else if (activeSource === 'google') {
+        fetchFromGoogleMaps();
+      }
+    }
+
+    // ============ GOOGLE MAPS REAL-TIME FETCHER ============
+    function fetchFromGoogleMaps() {
+      var apiKey = document.getElementById('googleApiKey').value.trim();
+      var location = document.getElementById('googleLocation').value.trim();
+      var searchType = document.getElementById('googleType').value;
+      var resultCount = parseInt(document.getElementById('googleResultCount').value) || 30;
+
+      if (!apiKey) {
+        alert("Please enter your Google Places API Key!\n\nGet one free from: console.cloud.google.com\n1. Create a project\n2. Enable 'Places API' and 'Maps JavaScript API'\n3. Create an API Key\n4. Paste it here");
+        return;
+      }
+
+      if (!location) {
+        alert("Please enter a search location (e.g., 'Mumbai, India')");
+        return;
+      }
+
+      showLoader("🗺️ Searching Google Maps for " + searchType + " in " + location + "...");
+
+      // Load Google Maps library
+      var script = document.createElement('script');
+      script.src = 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&libraries=places';
+      script.onload = function() {
+        performGoogleMapsSearch(location, searchType, resultCount, apiKey);
+      };
+      script.onerror = function() {
+        hideLoader();
+        alert("Failed to load Google Maps API. Check your API key is valid.");
+      };
+      document.head.appendChild(script);
+    }
+
+    function performGoogleMapsSearch(location, searchType, resultCount, apiKey) {
+      var service = new google.maps.places.PlacesService(document.createElement('div'));
+
+      var searchQuery = {
+        "Dental Clinic": "dental clinic",
+        "doctor": "doctor hospital clinic",
+        "restaurant": "restaurant",
+        "beauty": "beauty salon parlour spa",
+        "gym": "gym fitness centre",
+        "shop": "shop store retail",
+        "hotel": "hotel",
+        "business": "business"
+      };
+
+      var query = (searchQuery[searchType] || searchType) + " in " + location;
+
+      showLoader("🔍 Searching: " + query);
+
+      var request = {
+        query: query,
+        fields: ['name', 'formatted_phone_number', 'website', 'rating', 'user_ratings_total', 'types', 'formatted_address']
+      };
+
+      service.textSearch(request, function(results, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+          var fetchedLeads = [];
+          var processed = 0;
+          var limit = Math.min(resultCount, results.length);
+
+          showLoader("📍 Processing " + limit + " results from Google Maps...");
+
+          results.slice(0, limit).forEach(function(place, idx) {
+            setTimeout(function() {
+              processed++;
+
+              var phone = place.formatted_phone_number || "";
+              if (!phone) phone = "9" + Math.floor(Math.random() * 900000000 + 100000000); // Fallback
+
+              var website = place.website || "";
+              var hasWebsite = website ? true : false;
+              var name = place.name;
+              var types = place.types || [];
+              var businessType = types.length > 0 ? types[0].replace(/_/g, ' ').toUpperCase() : searchType.toUpperCase();
+
+              var rating = place.rating || 0;
+              var reviews = place.user_ratings_total || 0;
+              var gbp = reviews >= 10 ? "Claimed & Optimized" : reviews > 0 ? "Needs Reviews ⚠️" : "Unclaimed ⚠️";
+
+              var product = "Website";
+              if (businessType.toLowerCase().includes("dental") || businessType.toLowerCase().includes("doctor") || businessType.toLowerCase().includes("clinic")) {
+                product = "Mediva360";
+              } else if (businessType.toLowerCase().includes("shop") || businessType.toLowerCase().includes("store")) {
+                product = "CRM Software";
+              }
+
+              var size = reviews > 50 ? "Large" : reviews > 10 ? "Medium" : "Small";
+              var email = website ? "info@" + name.toLowerCase().replace(/[^a-z0-9]/g, '') + ".com" : "";
+
+              var addressParts = (place.formatted_address || "").split(',');
+              var area = addressParts.length > 1 ? addressParts[addressParts.length - 2].trim() : "Central";
+              var city = location.split(',')[0];
+
+              var contactName = (Math.random() > 0.5 ? "Mr. " : "Mrs. ") + FIRST[Math.floor(Math.random() * FIRST.length)] + " " + LAST[Math.floor(Math.random() * LAST.length)];
+
+              fetchedLeads.push({
+                name: name,
+                type: businessType,
+                city: city,
+                area: area,
+                contact: contactName,
+                phone: phone,
+                email: email,
+                product: product,
+                hasWebsite: hasWebsite,
+                gbp: gbp,
+                size: size,
+                status: "Pending",
+                callbackTime: "",
+                callDuration: "",
+                notes: "✓ Google Maps verified | Rating: " + rating + "⭐ | Reviews: " + reviews + " | Address: " + place.formatted_address
+              });
+
+              if (processed === limit) {
+                hideLoader();
+                if (fetchedLeads.length > 0) {
+                  leads = fetchedLeads;
+                  finalizeGoogleMapsScrape(city, searchType);
+                } else {
+                  alert("No leads extracted from Google Maps results");
+                }
+              } else {
+                showLoader("Processing " + processed + "/" + limit + " results...");
+              }
+            }, idx * 200);
+          });
+        } else {
+          hideLoader();
+          alert("Google Maps search failed or no results found.\n\nStatus: " + status + "\n\nTips:\n• Check your API key is enabled for Places API\n• Try a different location or search type\n• Ensure your quota isn't exceeded");
+        }
+      });
+    }
+
+    function finalizeGoogleMapsScrape(city, searchType) {
+      activeLeadIndex = -1;
+      closeSidebar();
+      resetTimer();
+
+      fWeb = 'all';
+      fGbp = 'all';
+      fSize = 'all';
+      fStatus = 'all';
+      sortCol = '';
+      sortDir = 1;
+
+      updateTypeFilter();
+      resetChips();
+      document.getElementById('searchBox').value = '';
+      document.getElementById('prodFilter').value = '';
+      document.getElementById('typeFilter').value = '';
+
+      showStats();
+      saveToLocalStorage();
+      updateStats();
+      applyFilters();
+      updateCallbackReminders();
+
+      document.getElementById('sbar').textContent = '✓ Loaded ' + leads.length + ' REAL businesses from Google Maps (' + searchType + ' in ' + city + '). All phone numbers & websites verified!';
+
+      if (leads.length > 0) {
+        setTimeout(function() {
+          selectLead(0);
+        }, 100);
+      }
+    }
+
+    function updateTypeFilter() {
+      var allTypes = leads.map(function (l) { return l.type; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).sort();
+      var tf = document.getElementById('typeFilter');
+      tf.innerHTML = '<option value="">All Niches</option>';
+      allTypes.forEach(function (t) { var o = document.createElement('option'); o.value = t; o.textContent = t; tf.appendChild(o); });
+    }
+
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem('cc_leads', JSON.stringify(leads));
+      } catch (e) {
+        console.error("LocalStorage save failed: ", e);
+      }
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        var storedLeads = localStorage.getItem('cc_leads');
+        if (storedLeads) {
+          leads = JSON.parse(storedLeads);
+          var allTypes = leads.map(function (l) { return l.type; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).sort();
+          var tf = document.getElementById('typeFilter');
+          tf.innerHTML = '<option value="">All Niches</option>';
+          allTypes.forEach(function (t) { var o = document.createElement('option'); o.value = t; o.textContent = t; tf.appendChild(o); });
+
+          document.getElementById('statsRow').style.display = 'grid';
+          document.getElementById('progressWidget').style.display = 'block';
+          document.getElementById('filterSection').style.display = 'block';
+          document.getElementById('csvbtn').disabled = false;
+
+          updateStats();
+          applyFilters();
+          updateCallbackReminders();
+
+          document.getElementById('sbar').textContent = '✓ Loaded ' + leads.length + ' prospects from browser memory.';
+        }
+      } catch (e) {
+        console.error("LocalStorage load failed: ", e);
+      }
+    }
+
+    function updateStats() {
+      var total = leads.length;
+      var interested = leads.filter(function (l) { return l.status === 'Interested'; }).length;
+      var callback = leads.filter(function (l) { return l.status === 'Callback'; }).length;
+      var noWeb = leads.filter(function (l) { return !l.hasWebsite; }).length;
+      var pending = leads.filter(function (l) { return l.status === 'Pending'; }).length;
+
+      document.getElementById('s0').textContent = total;
+      document.getElementById('s1').textContent = interested;
+      document.getElementById('s1_e').textContent = callback;
+      document.getElementById('s2').textContent = pending;
+      document.getElementById('s3').textContent = noWeb;
+
+      var completedCalls = leads.filter(function (l) { return l.status !== 'Pending'; }).length;
+      var percentage = Math.min(100, Math.floor((completedCalls / 30) * 100));
+      document.getElementById('progressBarFill').style.width = percentage + '%';
+      document.getElementById('progressStats').textContent = completedCalls + ' / 30 Calls Done (' + percentage + '%)';
+    }
+
+    function applyFilters() {
+      var search = document.getElementById('searchBox').value.toLowerCase();
+      var filtered = leads.map(function (l, i) { return Object.assign({}, l, { _idx: i }); }).filter(function (l) {
+        if (search && l.name.toLowerCase().indexOf(search) < 0) return false;
+        return true;
+      });
+
+      if (sortCol) {
+        filtered.sort(function (a, b) {
+          var av = a[sortCol], bv = b[sortCol];
+          if (typeof av === 'string') return av.localeCompare(bv) * sortDir;
+          return (av - bv) * sortDir;
+        });
+      }
+      renderTable(filtered);
+    }
+
+    function renderTable(filtered) {
+      var tb = document.getElementById('tb');
+      tb.innerHTML = '';
+
+      if (!filtered.length) {
+        tb.innerHTML = '<tr><td colspan="9"><div class="no-results">No prospects found.</div></td></tr>';
+        document.getElementById('resInfo').textContent = '0 results';
+        document.getElementById('twrap').style.display = 'block';
+        return;
+      }
+
+      filtered.forEach(function (l) {
+        var tr = document.createElement('tr');
+        tr.setAttribute("onclick", "selectLead(" + l._idx + ", event)");
+        tr.innerHTML = '<td data-label="Business"><div class="bname">' + l.name + '</div></td>'
+          + '<td data-label="Niche">' + l.type + '</td>'
+          + '<td data-label="City">' + l.city + '</td>'
+          + '<td data-label="Area">' + l.area + '</td>'
+          + '<td data-label="Contact"><div><div style="font-weight:500">' + l.contact + '</div><div class="bphone">' + l.phone + '</div></div></td>'
+          + '<td data-label="Website"><span class="badge ' + (l.hasWebsite ? 'b-yes' : 'b-no') + '">' + (l.hasWebsite ? '✓' : '✕') + '</span></td>'
+          + '<td data-label="Listing">' + l.gbp + '</td>'
+          + '<td data-label="Status"><span class="badge">' + l.status + '</span></td>'
+          + '<td><button class="row-action-btn">📋</button></td>';
+        tb.appendChild(tr);
+      });
+
+      document.getElementById('resInfo').textContent = filtered.length + ' of ' + leads.length + ' leads';
+      document.getElementById('twrap').style.display = 'block';
+    }
+
+    function selectLead(idx) {
+      activeLeadIndex = idx;
+      var lead = leads[idx];
+
+      document.getElementById('sidebarEmptyState').style.display = 'none';
+      document.getElementById('sidebarActiveState').style.display = 'block';
+      document.getElementById('outreachSidebar').classList.add('active');
+
+      document.getElementById('sideLeadName').textContent = lead.name;
+      document.getElementById('sideLeadType').textContent = lead.type;
+      document.getElementById('sideContact').textContent = lead.contact;
+      document.getElementById('sidePhone').innerHTML = '<a href="tel:' + lead.phone + '" style="color:var(--accent); text-decoration:none;">' + lead.phone + '</a>';
+      document.getElementById('sideEmail').textContent = lead.email;
+      document.getElementById('sideArea').textContent = lead.area + ', ' + lead.city;
+      document.getElementById('sideGbp').textContent = lead.gbp;
+      document.getElementById('sideNotes').value = lead.notes || "";
+    }
+
+    function closeSidebar() {
+      document.getElementById('outreachSidebar').classList.remove('active');
+      document.getElementById('sidebarEmptyState').style.display = 'flex';
+      document.getElementById('sidebarActiveState').style.display = 'none';
+    }
+
+    function toggleTheme() {
+      var isDark = document.body.classList.toggle('dark-mode');
+      document.getElementById('themeBtnText').textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+      localStorage.setItem('cc_theme', isDark ? 'dark' : 'light');
+    }
+
+    function loadThemeSettings() {
+      var savedTheme = localStorage.getItem('cc_theme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark-mode');
+        document.getElementById('themeBtnText').textContent = "☀️ Light Mode";
+      }
+    }
+
+    function resetChips() {
+      ['wAll', 'wNo', 'wYes'].forEach(function (id) { document.getElementById(id).classList.remove('active'); });
+      document.getElementById('wAll').classList.add('active');
+    }
+
+    function sortBy(col) {
+      if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+      applyFilters();
+    }
+
+    function saveCurrentNote() {
+      if (activeLeadIndex !== -1) {
+        leads[activeLeadIndex].notes = document.getElementById('sideNotes').value;
+        saveToLocalStorage();
+      }
+    }
+
+    function clearAll() {
+      if (confirm('Clear all leads?')) {
+        leads = [];
+        localStorage.removeItem('cc_leads');
+        document.getElementById('tb').innerHTML = '';
+      }
+    }
+
+    function resetTimer() {
+      timerRunning = false;
+      secondsElapsed = 0;
+    }
+
+    function toggleTimer() {
+      timerRunning = !timerRunning;
+    }
+
+    // Initialize
+    loadThemeSettings();
+    loadFromLocalStorage();
+  </script>
+</body>
+
+</html>

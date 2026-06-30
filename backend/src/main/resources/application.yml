@@ -1,0 +1,72 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gmb-ai-manager
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/gmbai}
+      database: ${MONGODB_DATABASE:gmbai}
+
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:mock-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:mock-google-client-secret}
+            scope:
+              - email
+              - profile
+              - https://www.googleapis.com/auth/business.manage
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent
+
+# Custom properties
+app:
+  jwt:
+    secret: ${JWT_SECRET:super-secure-and-very-long-jwt-signing-secret-key-32-chars-minimum}
+    expiration-ms: 86400000 # 24 hours
+  anthropic:
+    api-key: ${ANTHROPIC_API_KEY:mock-key}
+    api-url: https://api.anthropic.com/v1/messages
+  gmb:
+    api-mode: ${GOOGLE_API_MODE:PRODUCTION}
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+logging:
+  level:
+    com.gmb.manager: INFO
+    org.springframework.security: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
