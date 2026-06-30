@@ -199,7 +199,7 @@ export default function SeoAuditorPage() {
                 <ScoreDial score={audit.seoScore} />
               </div>
               <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-xl font-black text-white">SEO Score for <span className="text-emerald-400">{selectedLocation.name}</span></h2>
+                <h2 className="text-xl font-black text-white">SEO Score for <span className="text-emerald-400">{selectedLocation?.name}</span></h2>
                 <p className="text-slate-400 text-sm mt-1">
                   Based on profile completeness, review response rate, keyword usage, and local presence signals.
                 </p>

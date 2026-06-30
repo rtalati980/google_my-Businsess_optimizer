@@ -93,7 +93,7 @@ export default function PostsPage() {
 
   const handleLocalUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !activeDraft) return;
+    if (!selectedLocation || !file || !activeDraft) return;
 
     if (file.size > 2 * 1024 * 1024) {
       alert("File size exceeds 2MB limit. Please choose a smaller photo.");
@@ -110,7 +110,7 @@ export default function PostsPage() {
   };
 
   const handleAiImageGeneration = () => {
-    if (!activeDraft) return;
+    if (!selectedLocation || !activeDraft) return;
     const topicText = topic || activeDraft.topic || 'promotions';
     const bizCategory = selectedLocation.category || 'local business';
     const randomSeed = Math.floor(Math.random() * 1000000);
