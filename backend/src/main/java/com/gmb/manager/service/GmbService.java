@@ -426,14 +426,13 @@ public class GmbService {
         }
 
         try {
-            // Validate post content
+            // Validate post content - Google API limit is 300 chars
             String content = post.getContent();
             if (content == null || content.trim().isEmpty()) {
                 throw new RuntimeException("Post content cannot be empty.");
             }
-            if (content.length() > 1500) {
-                content = content.substring(0, 1500);
-                log.warn("Post content truncated to 1500 characters");
+            if (content.length() > 300) {
+                throw new RuntimeException("Post content exceeds Google API limit of 300 characters. Current: " + content.length() + " chars. Please shorten your post.");
             }
 
             String fullLocationName = location.getGoogleLocationId();

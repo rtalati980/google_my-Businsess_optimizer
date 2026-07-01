@@ -80,8 +80,8 @@ export default function PostsPage() {
           alert('Post content cannot be empty. Please add content to your post.');
           return;
         }
-        if (draftContent.length > 1500) {
-          alert('Post is too long. Maximum 1500 characters allowed. Current: ' + draftContent.length);
+        if (draftContent.length > 300) {
+          alert('Post exceeds Google API limit of 300 characters. Current: ' + draftContent.length + ' chars. Please shorten your post.');
           return;
         }
         // Save first before publishing
@@ -101,7 +101,7 @@ export default function PostsPage() {
 
       let userMessage = 'Error publishing post: ' + errorMsg;
       if (statusCode === 400) {
-        userMessage = 'Invalid post data. Make sure:\n- Post has content\n- Website URL is valid\n- Post is not too long (max 1500 chars)';
+        userMessage = 'Invalid post data. Make sure:\n- Post has content\n- Website URL is valid\n- Post is not too long (max 300 chars for Google API)';
       } else if (statusCode === 401) {
         userMessage = 'Authentication failed. Please reconnect your Google Business Profile.';
       } else if (statusCode === 403) {
@@ -274,15 +274,24 @@ export default function PostsPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">
-                    Post Copy Description
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1.5 flex items-center justify-between">
+                    <span>Post Copy Description</span>
+                    <span className={`text-[10px] font-semibold ${draftContent.length > 300 ? 'text-red-500' : draftContent.length > 250 ? 'text-yellow-500' : 'text-green-600'}`}>
+                      {draftContent.length}/300 chars
+                    </span>
                   </label>
                   <textarea
                     value={draftContent}
                     onChange={(e) => setDraftContent(e.target.value)}
                     rows={6}
-                    className="w-full bg-card border border-border rounded-xl p-3 text-sm focus:ring-1 focus:ring-primary focus:outline-none leading-relaxed"
+                    className={`w-full bg-card border rounded-xl p-3 text-sm focus:ring-1 focus:outline-none leading-relaxed ${draftContent.length > 300 ? 'border-red-500 focus:ring-red-500' : 'border-border focus:ring-primary'}`}
                   />
+                  {draftContent.length > 300 && (
+                    <div className="mt-2 flex items-center gap-2 text-red-500">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-xs font-semibold">Exceeds Google API limit (300 chars max)</span>
+                    </div>
+                  )}
                 </div>
 
                 <div>
