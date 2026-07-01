@@ -29,33 +29,35 @@ function ScoreDial({ score }: { score: number }) {
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <svg height={radius * 2} width={radius * 2} className="rotate-[-90deg]">
-        <circle
-          stroke="rgba(255,255,255,0.07)"
-          fill="transparent"
-          strokeWidth={strokeWidth}
-          r={normalizedRadius}
-          cx={radius}
-          cy={radius}
-        />
-        <circle
-          stroke={color}
-          fill="transparent"
-          strokeWidth={strokeWidth}
-          strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          r={normalizedRadius}
-          cx={radius}
-          cy={radius}
-          style={{ transition: 'stroke-dashoffset 1.2s ease-in-out' }}
-        />
-      </svg>
-      <div className="absolute flex flex-col items-center">
-        <span className="text-4xl font-black" style={{ color }}>{score}</span>
-        <span className="text-xs font-semibold text-slate-400">/100</span>
+      <div className="relative flex items-center justify-center" style={{ width: radius * 2, height: radius * 2 }}>
+        <svg height={radius * 2} width={radius * 2} className="rotate-[-90deg]">
+          <circle
+            stroke="rgba(255,255,255,0.07)"
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          <circle
+            stroke={color}
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${circumference} ${circumference}`}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+            style={{ transition: 'stroke-dashoffset 1.2s ease-in-out' }}
+          />
+        </svg>
+        <div className="absolute flex flex-col items-center justify-center">
+          <span className="text-3xl font-black leading-none" style={{ color }}>{score}</span>
+          <span className="text-[10px] font-bold text-slate-400 mt-0.5">/100</span>
+        </div>
       </div>
-      <span className="text-sm font-bold" style={{ color }}>{label}</span>
+      <span className="text-sm font-bold mt-1" style={{ color }}>{label}</span>
     </div>
   );
 }

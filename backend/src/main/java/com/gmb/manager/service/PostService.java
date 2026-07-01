@@ -19,6 +19,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final LocationRepository locationRepository;
     private final AiService aiService;
+    private final GmbService gmbService;
 
     public List<Post> getPostsByLocation(String locationId) {
         return postRepository.findByLocationId(locationId);
@@ -115,6 +116,9 @@ public class PostService {
     public Post publishPost(String postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+
+        // Call Google GMB API to publish post (simulated in sandbox, real POST call in production)
+        gmbService.publishGmbPost(postId);
 
         post.setStatus("PUBLISHED");
         post.setPublishedAt(LocalDateTime.now());

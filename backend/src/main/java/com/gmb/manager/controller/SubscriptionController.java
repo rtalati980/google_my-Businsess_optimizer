@@ -31,9 +31,9 @@ public class SubscriptionController {
         if (subscription == null) {
             subscription = Subscription.builder()
                     .userId(user.getId())
-                    .planType("BASIC")
-                    .status("ACTIVE")
-                    .currentPeriodEnd(LocalDateTime.now().plusDays(30))
+                    .planType("PREMIUM")
+                    .status("TRIALING")
+                    .currentPeriodEnd(LocalDateTime.now().plusDays(14))
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
@@ -78,5 +78,16 @@ public class SubscriptionController {
 
         Subscription saved = subscriptionRepository.save(subscription);
         return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping("/simulate-expiry")
+    public ResponseEntity<?> simulateExpiry(@AuthenticationPrincipal User user) {
+        Subscription subscription = subscriptionRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Subscription not found"));
+        subscription.setStatus("TRIALING");
+        subscription.setCurrentPeriodEnd(LocalDateTime.now().minusDays(1));
+        subscription.setUpdatedAt(LocalDateTime.now());
+        subscriptionRepository.save(subscription);
+        return ResponseEntity.ok(subscription);
     }
 }

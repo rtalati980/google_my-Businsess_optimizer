@@ -8,8 +8,15 @@ import axios from 'axios';
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsError, setTermsError] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const handleGoogleLogin = () => {
+    if (!termsAccepted) {
+      setTermsError(true);
+      return;
+    }
     // Redirect to backend OAuth2 initiation endpoint for production
     window.location.href = process.env.NEXT_PUBLIC_API_URL 
       ? `${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/google`
@@ -17,6 +24,10 @@ export default function LoginPage() {
   };
 
   const handleSandboxLogin = async () => {
+    if (!termsAccepted) {
+      setTermsError(true);
+      return;
+    }
     try {
       setLoading(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -119,6 +130,29 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-4">
+            {/* Terms and Conditions Checkbox */}
+            <div className="flex items-start gap-2.5 p-3.5 bg-slate-900/50 border border-slate-800/80 rounded-xl">
+              <input
+                type="checkbox"
+                id="terms-checkbox"
+                checked={termsAccepted}
+                onChange={(e) => {
+                  setTermsAccepted(e.target.checked);
+                  setTermsError(false);
+                }}
+                className="mt-1 h-4 w-4 rounded border-slate-800 bg-slate-950 text-violet-600 focus:ring-violet-500 cursor-pointer"
+              />
+              <label htmlFor="terms-checkbox" className="text-xs text-slate-400 select-none cursor-pointer leading-relaxed">
+                I agree to the <button type="button" onClick={() => setShowTermsModal(true)} className="text-violet-400 hover:underline font-bold focus:outline-none">Terms of Service</button> and <a href="/privacy" className="text-violet-400 hover:underline font-bold">Privacy Policy</a> (compliant with DPDP Act 2023).
+              </label>
+            </div>
+
+            {termsError && (
+              <p className="text-xs text-red-500 font-bold animate-pulse pl-1">
+                ⚠️ You must agree to the Terms and Privacy Policy to proceed.
+              </p>
+            )}
+
             {/* Sandbox Enter Button */}
             <button
               onClick={handleSandboxLogin}
@@ -162,6 +196,36 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Terms and Conditions Popup Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative overflow-hidden space-y-4">
+            {/* Ambient background blur */}
+            <div className="absolute -top-24 -right-24 w-40 h-40 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <h3 className="text-lg font-black text-white flex items-center gap-2 relative">
+              <Sparkles className="h-5 w-5 text-violet-400" />
+              Terms of Service
+            </h3>
+            
+            <div className="text-xs text-slate-300 space-y-3.5 max-h-[50vh] overflow-y-auto leading-relaxed border-y border-slate-800/80 py-4 pr-1 relative">
+              <p><strong>1. Acceptance of Terms:</strong> By signing in or creating an account, you agree to comply with and be bound by these Terms of Service. If you disagree, you must not proceed.</p>
+              <p><strong>2. Google Profile Access:</strong> You grant BizLocalPilot explicit permission to manage your Google My Business profile listings, customer reviews, owner responses, and updates via Google OAuth APIs.</p>
+              <p><strong>3. Review Response Automation:</strong> You authorize GMB AI Manager to publish drafted or AI-generated replies directly to your Google Maps review section on your behalf.</p>
+              <p><strong>4. Subscription Billing:</strong> New users receive a 14-day free trial on the Premium plan. Upon completion, a paywall will prevent dashboard usage until a Basic or Premium billing plan is purchased via Razorpay.</p>
+              <p><strong>5. DPDP Act & Data Erasure:</strong> In complete compliance with India's DPDP Act 2023, you retain absolute ownership over your business profiles. You can trigger a permanent account delete and data erasure at any time from Settings.</p>
+            </div>
+            
+            <button
+              onClick={() => setShowTermsModal(false)}
+              className="w-full py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-md shadow-violet-600/25 relative"
+            >
+              Accept & Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,6 +9,8 @@ import {
   Check, Loader2, RefreshCw, AlertCircle
 } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
 export default function SettingsPage() {
   const { user, locations, selectedLocation } = useDashboard();
   const [sub, setSub] = useState<Subscription | null>(null);
@@ -16,6 +18,25 @@ export default function SettingsPage() {
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    category: '',
+    phone: '',
+    website: '',
+    address: '',
+  });
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const [autoReply, setAutoReply] = useState({
     enabled: false,
@@ -89,8 +110,7 @@ export default function SettingsPage() {
   const handleDisconnectGmb = async () => {
     try {
       setDisconnecting(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const res = await fetch(`${apiUrl}/api/businesses/disconnect`, {
+      const res = await fetch(`${API_URL}/api/businesses/disconnect`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('gmb_auth_token')}`
@@ -109,15 +129,83 @@ export default function SettingsPage() {
 
   const handleConnectGmb = () => {
     setConnecting(true);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    window.location.href = `${apiUrl}/oauth2/authorization/google`;
+    window.location.href = `${API_URL}/oauth2/authorization/google`;
+  };
+
+  useEffect(() => {
+    if (selectedLocation) {
+      setProfileForm({
+        name: selectedLocation.name || '',
+        category: selectedLocation.category || '',
+        phone: selectedLocation.phone || '',
+        website: selectedLocation.website || '',
+        address: selectedLocation.address || '',
+      });
+    }
+  }, [selectedLocation]);
+
+  const handleSaveProfile = async () => {
+    if (!selectedLocation) return;
+    try {
+      setProfileSaving(true);
+      const token = localStorage.getItem('gmb_auth_token');
+      const res = await fetch(`${API_URL}/api/locations/${selectedLocation.id}/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profileForm)
+      });
+      if (res.ok) {
+        alert("Google Business Profile details updated successfully!");
+        window.location.reload();
+      } else {
+        alert("Failed to update profile details. Please try again.");
+      }
+    } catch (err) {
+      console.error('Failed to update GMB profile:', err);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmDelete = window.confirm(
+      "WARNING: Are you absolutely sure you want to delete your account?\n\n" +
+      "In compliance with the DPDP Act 2023 (Right to Erasure), this will permanently delete your user profile, billing records, GMB access tokens, locations, synced reviews, scheduled posts, and AI reports from our database. This action CANNOT be undone."
+    );
+    if (!confirmDelete) return;
+
+    try {
+      setDeletingAccount(true);
+      const res = await fetch(`${API_URL}/api/auth/delete-account`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('gmb_auth_token')}`
+        }
+      });
+      if (res.ok) {
+        alert("Your account and all associated personal data have been completely erased from our servers in compliance with the DPDP Act, 2023.");
+        localStorage.removeItem('gmb_auth_token');
+        localStorage.removeItem('gmb_active_location_id');
+        window.location.href = '/login';
+      } else {
+        alert("Failed to delete account. Please try again or contact support.");
+      }
+    } catch (err) {
+      console.error("Account deletion failed:", err);
+      alert("An error occurred during account deletion.");
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   const fetchSubscription = async () => {
     try {
       setLoading(true);
-      // Let's call standard fetch to backend subscription endpoint
-      const res = await fetch('http://localhost:8080/api/subscriptions', {
+      const res = await fetch(`${API_URL}/api/subscriptions`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('gmb_auth_token')}`
         }
@@ -137,23 +225,95 @@ export default function SettingsPage() {
     fetchSubscription();
   }, []);
 
-  const handleStripeSimulate = async (planType: string) => {
+  const handleCheckout = async (planType: string) => {
     try {
       setCheckingOut(planType);
-      // Call mock checkout endpoint in Spring Boot to switch plan status
-      const res = await fetch('http://localhost:8080/api/subscriptions/checkout', {
+      const token = localStorage.getItem('gmb_auth_token');
+
+      // 1. Create Order
+      const res = await fetch(`${API_URL}/api/subscriptions/razorpay/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('gmb_auth_token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ planType })
       });
-      if (res.ok) {
-        await fetchSubscription();
+
+      if (!res.ok) {
+        throw new Error('Failed to create Razorpay order');
       }
+
+      const orderData = await res.json();
+      const { orderId, amount, currency, keyId, simulation } = orderData;
+
+      // Developer Fallback Simulation
+      if (simulation) {
+        const verifyRes = await fetch(`${API_URL}/api/subscriptions/razorpay/verify-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            razorpayOrderId: orderId,
+            planType
+          })
+        });
+        if (verifyRes.ok) {
+          await fetchSubscription();
+          alert(`Successfully subscribed to ${planType} (Sandbox Simulator Mode)!`);
+        } else {
+          alert('Sandbox payment verification failed.');
+        }
+        return;
+      }
+
+      // Live Razorpay Checkout
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: currency,
+        name: "BizLocalPilot",
+        description: `${planType} Plan Subscription`,
+        order_id: orderId,
+        handler: async function (response: any) {
+          const verifyRes = await fetch(`${API_URL}/api/subscriptions/razorpay/verify-payment`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              planType
+            })
+          });
+
+          if (verifyRes.ok) {
+            await fetchSubscription();
+            alert(`Payment successful! Welcome to the ${planType} plan.`);
+          } else {
+            alert("Signature verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+        },
+        theme: {
+          color: "#7c3aed"
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+
     } catch (err) {
-      console.error('Checkout simulation failed:', err);
+      console.error('Checkout initiation failed:', err);
+      alert('Could not start checkout. Please try again.');
     } finally {
       setCheckingOut(null);
     }
@@ -269,6 +429,36 @@ export default function SettingsPage() {
               )}
             </div>
           </div>
+
+          {/* DPDP Compliance & Data Erasure */}
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-4">
+            <h3 className="text-base font-black flex items-center gap-2 text-red-500">
+              <Shield className="h-4.5 w-4.5" /> DPDP Privacy Compliance
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              We process and protect your personal data in accordance with the <strong>Indian Digital Personal Data Protection (DPDP) Act, 2023</strong>.
+            </p>
+            <div className="text-[10px] space-y-1.5 text-muted-foreground bg-secondary/15 p-3 rounded-xl">
+              <div>• <strong>Data Protection Officer (DPO):</strong> dpo@bizlocalpilot.in</div>
+              <div>• <strong>Right to Erasure:</strong> You can request complete deletion of your data at any time.</div>
+              <div>• <strong>Consent Withdrawal:</strong> You can withdraw consent and delete your account.</div>
+            </div>
+            <div className="pt-2">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deletingAccount}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-600/10 hover:bg-red-600/20 text-red-600 border border-red-600/35 text-xs font-bold rounded-xl active:scale-95 transition-all disabled:opacity-50"
+              >
+                {deletingAccount ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Erasing data...
+                  </>
+                ) : (
+                  'Delete Account & Permanent Erasure'
+                )}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Right Column: Stripe Simulation Plans */}
@@ -304,7 +494,7 @@ export default function SettingsPage() {
                   <div className="space-y-1.5">
                     <h4 className="font-black text-sm">Basic Plan</h4>
                     <p className="text-[10px] text-muted-foreground">Ideal for single GMB store locations.</p>
-                    <div className="text-2xl font-black mt-2">$29 <span className="text-[10px] text-muted-foreground font-normal">/ month</span></div>
+                    <div className="text-2xl font-black mt-2">₹999 <span className="text-[10px] text-muted-foreground font-normal">/ month</span></div>
                   </div>
 
                   <ul className="text-[10px] text-muted-foreground space-y-2 my-4">
@@ -314,7 +504,7 @@ export default function SettingsPage() {
                   </ul>
 
                   <button
-                    onClick={() => handleStripeSimulate('BASIC')}
+                    onClick={() => handleCheckout('BASIC')}
                     disabled={sub?.planType === 'BASIC' || checkingOut !== null}
                     className={`w-full py-2 rounded-xl text-xs font-bold transition-all ${
                       sub?.planType === 'BASIC'
@@ -322,7 +512,7 @@ export default function SettingsPage() {
                         : 'bg-foreground text-background hover:opacity-90 active:scale-95'
                     }`}
                   >
-                    {checkingOut === 'BASIC' ? 'Opening Stripe...' : sub?.planType === 'BASIC' ? 'Active Plan' : 'Downgrade to Basic'}
+                    {checkingOut === 'BASIC' ? 'Opening Razorpay...' : sub?.planType === 'BASIC' ? 'Active Plan' : 'Downgrade to Basic'}
                   </button>
                 </div>
 
@@ -341,7 +531,7 @@ export default function SettingsPage() {
                       Premium Plan <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-current" />
                     </h4>
                     <p className="text-[10px] text-muted-foreground">Unlimited local search business growth.</p>
-                    <div className="text-2xl font-black mt-2">$89 <span className="text-[10px] text-muted-foreground font-normal">/ month</span></div>
+                    <div className="text-2xl font-black mt-2">₹1,499 <span className="text-[10px] text-muted-foreground font-normal">/ month</span></div>
                   </div>
 
                   <ul className="text-[10px] text-muted-foreground space-y-2 my-4">
@@ -351,7 +541,7 @@ export default function SettingsPage() {
                   </ul>
 
                   <button
-                    onClick={() => handleStripeSimulate('PREMIUM')}
+                    onClick={() => handleCheckout('PREMIUM')}
                     disabled={sub?.planType === 'PREMIUM' || checkingOut !== null}
                     className={`w-full py-2 rounded-xl text-xs font-bold transition-all ${
                       sub?.planType === 'PREMIUM'
@@ -359,7 +549,7 @@ export default function SettingsPage() {
                         : 'bg-primary text-primary-foreground hover:opacity-90 active:scale-95 shadow-md shadow-primary/25'
                     }`}
                   >
-                    {checkingOut === 'PREMIUM' ? 'Opening Stripe...' : sub?.planType === 'PREMIUM' ? 'Active Plan' : 'Simulate Stripe Checkout'}
+                    {checkingOut === 'PREMIUM' ? 'Opening Razorpay...' : sub?.planType === 'PREMIUM' ? 'Active Plan' : 'Pay with Razorpay'}
                   </button>
                 </div>
               </div>
@@ -368,10 +558,117 @@ export default function SettingsPage() {
             <div className="border-t border-border pt-4 text-[10px] text-muted-foreground leading-relaxed flex items-start gap-2 bg-secondary/10 p-3 rounded-xl">
               <AlertCircle className="h-4.5 w-4.5 text-primary flex-shrink-0 mt-0.5" />
               <span>
-                Stripe simulator toggle is active. Clicking will invoke a simulated checkout redirect success event and update user subscription status in the database.
+                Razorpay sandbox integration is active. If your credentials are not configured, it will simulate a successful payment instantly. Otherwise, it will trigger the secure Razorpay Checkout overlay supporting UPI, Netbanking, and Cards.
               </span>
             </div>
+            
+            <button
+              onClick={async () => {
+                if (window.confirm("Do you want to simulate trial expiry? This will set your subscription to 'TRIALING' and end date to 'yesterday' to trigger the paywall modal.")) {
+                  const token = localStorage.getItem('gmb_auth_token');
+                  const res = await fetch(`${API_URL}/api/subscriptions/simulate-expiry`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  if (res.ok) {
+                    alert("Trial expiry simulated! Reloading page to trigger paywall.");
+                    window.location.reload();
+                  }
+                }
+              }}
+              className="w-full mt-3 py-1.5 border border-dashed border-rose-500/30 hover:bg-rose-500/10 text-rose-400 text-[10px] font-bold rounded-xl transition-all"
+            >
+              Simulate Trial Expiry (Developer Testing)
+            </button>
           </div>
+
+          {/* Google Maps Profile Editing */}
+          {selectedLocation && (
+            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-4">
+              <h3 className="text-base font-black flex items-center gap-2">
+                <Sparkles className="h-4.5 w-4.5 text-primary" /> Edit Google Maps Profile
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Update your business location details. In Production mode, this updates your live Google Maps presence.
+              </p>
+
+              <div className="space-y-3.5 pt-2">
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                    Business Name
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm(p => ({ ...p, name: e.target.value }))}
+                    className="w-full bg-card border border-border text-xs rounded-xl px-3 py-2.5 font-semibold focus:ring-1 focus:ring-primary focus:outline-none"
+                    placeholder="e.g. Salon Beauty"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                      Business Category
+                    </label>
+                    <input
+                      type="text"
+                      value={profileForm.category}
+                      onChange={(e) => setProfileForm(p => ({ ...p, category: e.target.value }))}
+                      className="w-full bg-card border border-border text-xs rounded-xl px-3 py-2.5 font-semibold focus:ring-1 focus:ring-primary focus:outline-none"
+                      placeholder="e.g. Beauty Salon"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                      Primary Phone
+                    </label>
+                    <input
+                      type="text"
+                      value={profileForm.phone}
+                      onChange={(e) => setProfileForm(p => ({ ...p, phone: e.target.value }))}
+                      className="w-full bg-card border border-border text-xs rounded-xl px-3 py-2.5 font-semibold focus:ring-1 focus:ring-primary focus:outline-none"
+                      placeholder="e.g. +91 99999 99999"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                    Website URI
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.website}
+                    onChange={(e) => setProfileForm(p => ({ ...p, website: e.target.value }))}
+                    className="w-full bg-card border border-border text-xs rounded-xl px-3 py-2.5 font-semibold focus:ring-1 focus:ring-primary focus:outline-none"
+                    placeholder="e.g. https://yoursalon.in"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                    Storefront Address
+                  </label>
+                  <textarea
+                    value={profileForm.address}
+                    onChange={(e) => setProfileForm(p => ({ ...p, address: e.target.value }))}
+                    rows={2}
+                    className="w-full bg-card border border-border text-xs rounded-xl p-3 focus:ring-1 focus:ring-primary focus:outline-none"
+                    placeholder="Address lines..."
+                  />
+                </div>
+
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={profileSaving}
+                  className="w-full py-2.5 bg-primary text-primary-foreground text-xs font-bold rounded-xl active:scale-95 transition-all shadow-md shadow-primary/25 disabled:opacity-50"
+                >
+                  {profileSaving ? 'Saving Changes...' : 'Save Business Profile Changes'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

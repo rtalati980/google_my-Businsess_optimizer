@@ -106,4 +106,28 @@ public class BusinessController {
         Map<String, Object> insights = insightService.getLocationInsights(locationId, user);
         return ResponseEntity.ok(insights);
     }
+
+    @PutMapping("/locations/{locationId}/profile")
+    public ResponseEntity<?> updateLocationProfile(
+            @AuthenticationPrincipal User user,
+            @PathVariable String locationId,
+            @RequestBody Map<String, String> request
+    ) {
+        Location location = locationRepository.findById(locationId).orElse(null);
+        if (location == null) return ResponseEntity.notFound().build();
+        if (!isOwner(location, user)) return ResponseEntity.status(403).body("Access Denied");
+
+        String name = request.get("name");
+        String category = request.get("category");
+        String phone = request.get("phone");
+        String website = request.get("website");
+        String address = request.get("address");
+
+        if (name == null || name.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Business Name is required");
+        }
+
+        Location updated = gmbService.updateLocationProfile(locationId, name, category, phone, website, address);
+        return ResponseEntity.ok(updated);
+    }
 }

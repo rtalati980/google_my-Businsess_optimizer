@@ -50,6 +50,9 @@ app:
   gmb:
     api-mode: ${GOOGLE_API_MODE:PRODUCTION}
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  razorpay:
+    key-id: ${RAZORPAY_KEY_ID:rzp_test_mockkey}
+    key-secret: ${RAZORPAY_KEY_SECRET:mocksecret}
 
 management:
   endpoints:

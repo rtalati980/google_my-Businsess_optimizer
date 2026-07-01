@@ -99,12 +99,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     .build();
             user = userRepository.save(user);
 
-            // Create default subscription status (trialing or active basic tier)
+            // Create default subscription status (14-day premium free trial)
             Subscription subscription = Subscription.builder()
                     .userId(user.getId())
-                    .planType("BASIC")
-                    .status("ACTIVE")
-                    .currentPeriodEnd(LocalDateTime.now().plusDays(30))
+                    .planType("PREMIUM")
+                    .status("TRIALING")
+                    .currentPeriodEnd(LocalDateTime.now().plusDays(14))
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();

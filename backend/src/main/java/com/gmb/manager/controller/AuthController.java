@@ -23,6 +23,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final JwtService jwtService;
+    private final com.gmb.manager.service.GmbService gmbService;
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal User user) {
@@ -54,9 +55,9 @@ public class AuthController {
 
             Subscription subscription = Subscription.builder()
                     .userId(user.getId())
-                    .planType("BASIC")
-                    .status("ACTIVE")
-                    .currentPeriodEnd(LocalDateTime.now().plusDays(30))
+                    .planType("PREMIUM")
+                    .status("TRIALING")
+                    .currentPeriodEnd(LocalDateTime.now().plusDays(14))
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
@@ -72,5 +73,14 @@ public class AuthController {
         response.put("token", token);
 
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/delete-account")
+    public ResponseEntity<?> deleteAccount(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+        }
+        gmbService.deleteUserAccount(user);
+        return ResponseEntity.ok(Map.of("message", "Account successfully deleted in compliance with DPDP Act, 2023."));
     }
 }

@@ -128,6 +128,11 @@ export const apiService = {
     return response.data;
   },
 
+  saveReply: async (reviewId: string, replyText: string, tone: string): Promise<ReviewReply> => {
+    const response = await api.post<ReviewReply>('/api/reviews/replies/save', { reviewId, replyText, tone });
+    return response.data;
+  },
+
   // Posts
   getPosts: async (locationId: string): Promise<Post[]> => {
     const response = await api.get<Post[]>(`/api/locations/${locationId}/posts`);

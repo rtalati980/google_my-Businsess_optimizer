@@ -60,6 +60,7 @@ com\gmb\manager\entity\AIReport.class
 com\gmb\manager\controller\SeoAuditController.class
 com\gmb\manager\controller\AuthController.class
 com\gmb\manager\controller\ReviewController.class
+com\gmb\manager\controller\RazorpayController.class
 com\gmb\manager\repository\LeadRepository.class
 com\gmb\manager\controller\AutoReplyController.class
 com\gmb\manager\entity\User.class

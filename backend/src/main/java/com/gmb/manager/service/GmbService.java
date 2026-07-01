@@ -27,6 +27,11 @@ public class GmbService {
     private final CompetitorRepository competitorRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final PostRepository postRepository;
+    private final SEOAuditRepository seoAuditRepository;
+    private final AIReportRepository aiReportRepository;
+    private final ReviewReplyRepository reviewReplyRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -285,14 +290,233 @@ public class GmbService {
         User user = userRepository.findById(userParam.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userParam.getId()));
 
-        List<Business> businesses = businessRepository.findByUserId(user.getId());
-        if (!businesses.isEmpty()) {
-            businessRepository.deleteAll(businesses);
-            log.info("Deleted {} businesses for user {}", businesses.size(), user.getEmail());
-        }
+        deleteAssociatedGmbData(user.getId());
 
         user.setGoogleAccessToken(null);
+        user.setGoogleRefreshToken(null);
         userRepository.save(user);
+    }
+
+    public void deleteUserAccount(User userParam) {
+        log.info("DPDP Erasure Request: permanently deleting user account and all personal data: {}", userParam.getEmail());
+        User user = userRepository.findById(userParam.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userParam.getId()));
+
+        // 1. Delete associated business and locations data
+        deleteAssociatedGmbData(user.getId());
+
+        // 2. Delete subscription
+        subscriptionRepository.findByUserId(user.getId()).ifPresent(subscriptionRepository::delete);
+
+        // 3. Delete user document
+        userRepository.delete(user);
+        log.info("Successfully deleted user and all personal data: {}", user.getEmail());
+    }
+
+    private void deleteAssociatedGmbData(String userId) {
+        List<Business> businesses = businessRepository.findByUserId(userId);
+        for (Business business : businesses) {
+            List<Location> locations = locationRepository.findByBusinessId(business.getId());
+            for (Location location : locations) {
+                // Delete reviews and replies
+                List<Review> reviews = reviewRepository.findByLocationId(location.getId());
+                for (Review review : reviews) {
+                    reviewReplyRepository.findByReviewId(review.getId()).ifPresent(reviewReplyRepository::delete);
+                    reviewRepository.delete(review);
+                }
+
+                // Delete posts
+                List<Post> posts = postRepository.findByLocationId(location.getId());
+                postRepository.deleteAll(posts);
+
+                // Delete audits
+                List<SEOAudit> audits = seoAuditRepository.findByLocationIdOrderByCreatedAtDesc(location.getId());
+                seoAuditRepository.deleteAll(audits);
+
+                // Delete reports
+                List<AIReport> reports = aiReportRepository.findByLocationIdOrderByCreatedAtDesc(location.getId());
+                aiReportRepository.deleteAll(reports);
+
+                // Delete competitors
+                List<Competitor> competitors = competitorRepository.findByLocationId(location.getId());
+                competitorRepository.deleteAll(competitors);
+
+                locationRepository.delete(location);
+            }
+            businessRepository.delete(business);
+        }
+    }
+
+    public void publishReviewReply(String reviewId, String replyText) {
+        log.info("Publishing review reply for reviewId: {} in {} mode", reviewId, apiMode);
+        
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("Review not found with id: " + reviewId));
+                
+        if ("SANDBOX".equalsIgnoreCase(apiMode)) {
+            log.info("SANDBOX mode: simulated successful publishing of reply: {}", replyText);
+            return;
+        }
+
+        Location location = locationRepository.findById(review.getLocationId())
+                .orElseThrow(() -> new IllegalArgumentException("Location not found for review: " + reviewId));
+                
+        Business business = businessRepository.findById(location.getBusinessId())
+                .orElseThrow(() -> new IllegalArgumentException("Business not found for location: " + location.getId()));
+                
+        User user = userRepository.findById(business.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found for business: " + business.getId()));
+
+        String token = ensureFreshToken(user);
+        if (token == null) {
+            throw new RuntimeException("Cannot publish reply because Google access token is missing.");
+        }
+
+        try {
+            String fullLocationName = location.getGoogleLocationId();
+            if (!fullLocationName.startsWith("accounts/")) {
+                fullLocationName = business.getGoogleAccountId() + "/" + fullLocationName;
+            }
+            
+            String url = String.format("https://mybusiness.googleapis.com/v4/%s/reviews/%s/reply",
+                    fullLocationName, review.getGoogleReviewId());
+                    
+            HttpHeaders headers = bearerHeaders(token);
+            Map<String, String> body = new HashMap<>();
+            body.put("comment", replyText);
+            
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
+            
+            log.info("Sending PUT request to Google API: {}", url);
+            restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+            log.info("Successfully published reply to Google GMB API for reviewId: {}", reviewId);
+            
+        } catch (org.springframework.web.client.HttpClientErrorException.Forbidden e) {
+            log.error("Google API forbidden error publishing reply for reviewId: {}", reviewId, e);
+            throw new RuntimeException("GMB API error: Access Forbidden. Ensure your Google account has manage permissions on this profile.", e);
+        } catch (Exception e) {
+            log.error("Failed to publish reply to Google GMB API for reviewId: {}", reviewId, e);
+            throw new RuntimeException("Google Business Profile API error: " + e.getMessage(), e);
+        }
+    }
+
+    public void publishGmbPost(String postId) {
+        log.info("Publishing GMB local post for postId: {} in {} mode", postId, apiMode);
+        
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+                
+        if ("SANDBOX".equalsIgnoreCase(apiMode)) {
+            log.info("SANDBOX mode: simulated successful publishing of post to Google: {}", post.getTopic());
+            return;
+        }
+
+        Location location = locationRepository.findById(post.getLocationId())
+                .orElseThrow(() -> new IllegalArgumentException("Location not found for post: " + postId));
+                
+        Business business = businessRepository.findById(location.getBusinessId())
+                .orElseThrow(() -> new IllegalArgumentException("Business not found for location: " + location.getId()));
+                
+        User user = userRepository.findById(business.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found for business: " + business.getId()));
+
+        String token = ensureFreshToken(user);
+        if (token == null) {
+            throw new RuntimeException("Cannot publish post because Google access token is missing.");
+        }
+
+        try {
+            String fullLocationName = location.getGoogleLocationId();
+            if (!fullLocationName.startsWith("accounts/")) {
+                fullLocationName = business.getGoogleAccountId() + "/" + fullLocationName;
+            }
+            
+            String url = String.format("https://mybusiness.googleapis.com/v4/%s/localPosts", fullLocationName);
+            
+            HttpHeaders headers = bearerHeaders(token);
+            
+            Map<String, Object> body = new HashMap<>();
+            body.put("languageCode", "en-US");
+            body.put("summary", post.getContent());
+            
+            // Call to Action
+            Map<String, String> cta = new HashMap<>();
+            cta.put("actionType", "LEARN_MORE");
+            cta.put("url", location.getWebsite() != null ? location.getWebsite() : "https://maps.google.com");
+            body.put("callToAction", cta);
+            
+            // Media/Image
+            if (post.getMediaUrl() != null && !post.getMediaUrl().isEmpty()) {
+                if (!post.getMediaUrl().startsWith("data:")) {
+                    Map<String, Object> mediaObj = new HashMap<>();
+                    mediaObj.put("mediaFormat", "PHOTO");
+                    mediaObj.put("sourceUrl", post.getMediaUrl());
+                    body.put("media", List.of(mediaObj));
+                }
+            }
+            
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+            log.info("Sending POST request to GMB localPosts API: {}", url);
+            restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            log.info("Successfully published local post to Google GMB API for postId: {}", postId);
+            
+        } catch (Exception e) {
+            log.error("Failed to publish local post to Google GMB API for postId: {}", postId, e);
+            throw new RuntimeException("Google Business Profile API error: " + e.getMessage(), e);
+        }
+    }
+
+    public Location updateLocationProfile(
+            String locationId, String name, String category, String phone, String website, String address
+    ) {
+        Location location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new IllegalArgumentException("Location not found with id: " + locationId));
+                
+        location.setName(name);
+        location.setCategory(category);
+        location.setPhone(phone);
+        location.setWebsite(website);
+        location.setAddress(address);
+        location.setUpdatedAt(LocalDateTime.now());
+        Location saved = locationRepository.save(location);
+
+        if ("SANDBOX".equalsIgnoreCase(apiMode)) {
+            log.info("SANDBOX mode: simulated successful update of GMB profile details.");
+            return saved;
+        }
+
+        Business business = businessRepository.findById(location.getBusinessId()).orElse(null);
+        if (business == null) return saved;
+        
+        User user = userRepository.findById(business.getUserId()).orElse(null);
+        if (user == null) return saved;
+
+        String token = ensureFreshToken(user);
+        if (token != null) {
+            try {
+                String url = String.format("https://mybusinessbusinessinformation.googleapis.com/v1/%s" +
+                        "?updateMask=title,websiteUri,phoneNumbers", location.getGoogleLocationId());
+                        
+                HttpHeaders headers = bearerHeaders(token);
+                
+                Map<String, Object> body = new HashMap<>();
+                body.put("title", name);
+                body.put("websiteUri", website);
+                
+                if (phone != null && !phone.isEmpty()) {
+                    body.put("phoneNumbers", Map.of("primaryPhone", phone));
+                }
+                
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+                log.info("Sending PATCH request to Google Business Info API: {}", url);
+                restTemplate.exchange(url, HttpMethod.PATCH, entity, String.class);
+                log.info("Successfully updated GMB profile on Google Business Info API for locationId: {}", locationId);
+                
+            } catch (Exception e) {
+                log.error("Failed to update GMB profile on Google API for locationId: {}", locationId, e);
+            }
+        }
+        return saved;
     }
 
     // ─── Helpers ────────────────────────────────────────────────────────────────

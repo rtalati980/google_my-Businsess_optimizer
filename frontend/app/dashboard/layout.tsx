@@ -39,6 +39,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
   const [gmbError, setGmbError] = useState<{ code: string; message: string } | null>(null);
+  const [showDpdpBanner, setShowDpdpBanner] = useState(false);
+
+  useEffect(() => {
+    const consent = localStorage.getItem('dpdp_consent');
+    if (!consent) {
+      setShowDpdpBanner(true);
+    }
+  }, []);
+
+  const handleAcceptDpdp = () => {
+    localStorage.setItem('dpdp_consent', 'accepted');
+    setShowDpdpBanner(false);
+  };
 
   // Load authenticated user — locations are fetched in DashboardWrapper after user is set
   useEffect(() => {
@@ -100,6 +113,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         gmbError={gmbError}
         setGmbError={setGmbError}
         router={router}
+        showDpdpBanner={showDpdpBanner}
+        handleAcceptDpdp={handleAcceptDpdp}
       >
         {children}
       </DashboardWrapper>
@@ -111,10 +126,156 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 function DashboardWrapper({ 
   user, locations, setLocations, selectedLocation, setSelectedLocation, 
   isLoading, setIsLoading, theme, toggleTheme, sidebarOpen, setSidebarOpen, 
-  locationDropdownOpen, setLocationDropdownOpen, gmbError, setGmbError, router, children 
+  locationDropdownOpen, setLocationDropdownOpen, gmbError, setGmbError, router, children,
+  showDpdpBanner, handleAcceptDpdp
 }: any) {
 
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
+  const [subscription, setSubscription] = useState<any>(null);
+  const [subLoading, setSubLoading] = useState(true);
+  const [checkingOut, setCheckingOut] = useState<string | null>(null);
+
+  const fetchSubscription = async () => {
+    try {
+      setSubLoading(true);
+      const token = localStorage.getItem('gmb_auth_token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const res = await fetch(`${apiUrl}/api/subscriptions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSubscription(data);
+      }
+    } catch (err) {
+      console.error('Error fetching subscription in layout:', err);
+    } finally {
+      setSubLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchSubscription();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      try {
+        document.body.removeChild(script);
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
+
+  const handleCheckout = async (planType: string) => {
+    try {
+      setCheckingOut(planType);
+      const token = localStorage.getItem('gmb_auth_token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+      // 1. Create Order
+      const res = await fetch(`${apiUrl}/api/subscriptions/razorpay/create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ planType })
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to create Razorpay order');
+      }
+
+      const orderData = await res.json();
+      const { orderId, amount, currency, keyId, simulation } = orderData;
+
+      // Developer Fallback Simulation
+      if (simulation) {
+        const verifyRes = await fetch(`${apiUrl}/api/subscriptions/razorpay/verify-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            razorpayOrderId: orderId,
+            planType
+          })
+        });
+        if (verifyRes.ok) {
+          await fetchSubscription();
+          alert(`Successfully subscribed to ${planType} (Sandbox Simulator Mode)!`);
+          window.location.reload();
+        } else {
+          alert('Sandbox payment verification failed.');
+        }
+        return;
+      }
+
+      // Live Razorpay Checkout
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: currency,
+        name: "BizLocalPilot",
+        description: `${planType} Plan Subscription`,
+        order_id: orderId,
+        handler: async function (response: any) {
+          const verifyRes = await fetch(`${apiUrl}/api/subscriptions/razorpay/verify-payment`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              planType
+            })
+          });
+
+          if (verifyRes.ok) {
+            await fetchSubscription();
+            alert(`Payment successful! Welcome to the ${planType} plan.`);
+            window.location.reload();
+          } else {
+            alert("Signature verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+        },
+        theme: {
+          color: "#6d28d9"
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error('Checkout error:', err);
+      alert('Checkout failed to initialize.');
+    } finally {
+      setCheckingOut(null);
+    }
+  };
+
+  const isTrialExpired = 
+    subscription && 
+    subscription.status === 'TRIALING' && 
+    new Date() > new Date(subscription.currentPeriodEnd);
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -389,8 +550,118 @@ function DashboardWrapper({
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
             {children}
           </main>
+
+          {/* DPDP Act 2023 Consent Notice Banner */}
+          {showDpdpBanner && (
+            <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-[420px] bg-slate-900 border border-slate-700/80 rounded-2xl p-5 shadow-2xl z-50 animate-in slide-in-from-bottom duration-300">
+              <h4 className="font-extrabold text-sm text-white flex items-center gap-2">
+                🛡️ DPDP Act Consent Notice
+              </h4>
+              <p className="text-[11px] text-slate-300 mt-2 leading-relaxed">
+                In compliance with the <strong>Digital Personal Data Protection (DPDP) Act, 2023</strong> of India, we notify you that we collect and process your name, email, and Google Business OAuth tokens purely to automate your reviews and postings.
+              </p>
+              <div className="flex items-center gap-3 mt-4">
+                <button
+                  onClick={handleAcceptDpdp}
+                  className="flex-1 py-2 bg-primary hover:bg-primary/95 text-primary-foreground text-xs font-bold rounded-xl active:scale-95 transition-all shadow-md shadow-primary/25"
+                >
+                  I Accept & Consent
+                </button>
+                <button
+                  onClick={() => alert("Privacy Notice: All data processing is strictly consent-driven. You can revoke consent at any time from your SaaS Settings page by deleting your account.")}
+                  className="px-3 py-2 bg-secondary hover:bg-secondary/95 text-foreground text-[10px] font-bold rounded-xl active:scale-95 transition-all"
+                >
+                  More Info
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Global Trial Expired Paywall Overlay */}
+      {isTrialExpired && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700/50 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative overflow-hidden text-center">
+            {/* Background ambient glow */}
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl" />
+
+            <div className="space-y-3 relative">
+              <div className="mx-auto w-12 h-12 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-white">Your Free Trial Has Expired</h2>
+              <p className="text-xs text-slate-300 leading-relaxed max-w-sm mx-auto">
+                Your 14-day trial of BizLocalPilot has completed. Subscribing to a plan lets you continue managing GMB profiles, reviews, and AI automations.
+              </p>
+            </div>
+
+            {/* Plan Options Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 relative text-left">
+              {/* Basic Plan */}
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between hover:border-slate-700 transition-colors">
+                <div>
+                  <h4 className="font-extrabold text-sm text-slate-200">Basic Plan</h4>
+                  <p className="text-[10px] text-slate-400 mt-1">Perfect for single locations</p>
+                  <div className="mt-3 flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-white">₹999</span>
+                    <span className="text-[10px] text-slate-400">/ month</span>
+                  </div>
+                  <ul className="text-[10px] text-slate-300 mt-4 space-y-2">
+                    <li className="flex items-center gap-1.5">✓ 1 GMB Location</li>
+                    <li className="flex items-center gap-1.5">✓ 5 AI Replies/mo</li>
+                    <li className="flex items-center gap-1.5">✓ Weekly Audits</li>
+                  </ul>
+                </div>
+                <button
+                  onClick={() => handleCheckout('BASIC')}
+                  disabled={checkingOut !== null}
+                  className="w-full py-2 bg-secondary hover:bg-secondary/90 text-foreground text-xs font-bold rounded-xl active:scale-95 transition-all mt-5"
+                >
+                  {checkingOut === 'BASIC' ? 'Opening...' : 'Select Basic'}
+                </button>
+              </div>
+
+              {/* Premium Plan */}
+              <div className="bg-slate-950 border border-primary/30 rounded-2xl p-5 flex flex-col justify-between hover:border-primary/50 transition-colors relative">
+                <div className="absolute -top-2.5 right-4 px-2 py-0.5 bg-primary text-primary-foreground text-[8px] font-extrabold uppercase rounded-full tracking-wider">
+                  Popular
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-primary">Premium Plan</h4>
+                  <p className="text-[10px] text-slate-400 mt-1">Unlock full capabilities</p>
+                  <div className="mt-3 flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-white">₹1,499</span>
+                    <span className="text-[10px] text-slate-400">/ month</span>
+                  </div>
+                  <ul className="text-[10px] text-slate-300 mt-4 space-y-2">
+                    <li className="flex items-center gap-1.5">✓ Unlimited Locations</li>
+                    <li className="flex items-center gap-1.5">✓ Unlimited AI Autopilot</li>
+                    <li className="flex items-center gap-1.5">✓ AI Post Generator</li>
+                  </ul>
+                </div>
+                <button
+                  onClick={() => handleCheckout('PREMIUM')}
+                  disabled={checkingOut !== null}
+                  className="w-full py-2 bg-primary hover:bg-primary/95 text-primary-foreground text-xs font-bold rounded-xl active:scale-95 transition-all mt-5 shadow-lg shadow-primary/25"
+                >
+                  {checkingOut === 'PREMIUM' ? 'Opening...' : 'Select Premium'}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1 text-[11px] font-bold text-slate-400 hover:text-rose-400 transition-colors"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Logout of Account
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardContext.Provider>
   );
 }

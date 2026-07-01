@@ -338,16 +338,13 @@ export default function ReviewsPage() {
                           
                           <div className="flex gap-2 justify-end">
                             <button
-                              onClick={() => {
-                                // Add saving updated text in database endpoint call
-                                fetch('http://localhost:8080/api/reviews/replies/save', {
-                                  method: 'POST',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${localStorage.getItem('gmb_auth_token')}`
-                                  },
-                                  body: JSON.stringify({ reviewId: review.id, replyText: currentDraftText, tone: currentTone.toUpperCase() })
-                                }).then(() => fetchReviews());
+                              onClick={async () => {
+                                try {
+                                  await apiService.saveReply(review.id, currentDraftText, currentTone.toUpperCase());
+                                  await fetchReviews();
+                                } catch (err) {
+                                  console.error('Failed to save draft:', err);
+                                }
                               }}
                               className="px-3 py-1.5 hover:bg-secondary border border-border text-xs font-bold rounded-xl transition-colors"
                             >

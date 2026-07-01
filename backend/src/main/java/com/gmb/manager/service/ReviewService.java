@@ -25,6 +25,7 @@ public class ReviewService {
     private final ReviewReplyRepository reviewReplyRepository;
     private final LocationRepository locationRepository;
     private final AiService aiService;
+    private final GmbService gmbService;
 
     public Page<Review> getReviews(String locationId, List<Integer> ratings, Pageable pageable) {
         if (ratings == null || ratings.isEmpty()) {
@@ -100,6 +101,9 @@ public class ReviewService {
     public ReviewReply publishReply(String replyId) {
         ReviewReply reply = reviewReplyRepository.findById(replyId)
                 .orElseThrow(() -> new IllegalArgumentException("Reply not found with id: " + replyId));
+
+        // Call Google GMB API to publish reply (simulated in sandbox, real PUT call in production)
+        gmbService.publishReviewReply(reply.getReviewId(), reply.getReplyText());
 
         reply.setIsPublished(true);
         reply.setPublishedAt(LocalDateTime.now());
