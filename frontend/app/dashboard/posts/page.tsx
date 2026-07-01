@@ -75,6 +75,15 @@ export default function PostsPage() {
     try {
       setPublishing(true);
       if (isFromDraft && activeDraft) {
+        // Validate post before publishing
+        if (!draftContent || draftContent.trim().length === 0) {
+          alert('Post content cannot be empty. Please add content to your post.');
+          return;
+        }
+        if (draftContent.length > 1500) {
+          alert('Post is too long. Maximum 1500 characters allowed. Current: ' + draftContent.length);
+          return;
+        }
         // Save first before publishing
         await apiService.updatePost(activeDraft.id, draftContent, activeDraft.mediaUrl);
       }
@@ -84,8 +93,22 @@ export default function PostsPage() {
         setDraftContent('');
       }
       await fetchPosts();
-    } catch (err) {
+      alert('✓ Post published successfully to Google Business Profile!');
+    } catch (err: any) {
       console.error('Error publishing post:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to publish post';
+      const statusCode = err.response?.status;
+
+      let userMessage = 'Error publishing post: ' + errorMsg;
+      if (statusCode === 400) {
+        userMessage = 'Invalid post data. Make sure:\n- Post has content\n- Website URL is valid\n- Post is not too long (max 1500 chars)';
+      } else if (statusCode === 401) {
+        userMessage = 'Authentication failed. Please reconnect your Google Business Profile.';
+      } else if (statusCode === 403) {
+        userMessage = 'Access denied. You may not have permission to publish posts for this location.';
+      }
+
+      alert(userMessage);
     } finally {
       setPublishing(false);
     }

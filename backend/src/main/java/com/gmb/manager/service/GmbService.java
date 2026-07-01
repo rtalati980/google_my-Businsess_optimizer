@@ -402,10 +402,10 @@ public class GmbService {
 
     public void publishGmbPost(String postId) {
         log.info("Publishing GMB local post for postId: {} in {} mode", postId, apiMode);
-        
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
-                
+
         if ("SANDBOX".equalsIgnoreCase(apiMode)) {
             log.info("SANDBOX mode: simulated successful publishing of post to Google: {}", post.getTopic());
             return;
@@ -413,10 +413,10 @@ public class GmbService {
 
         Location location = locationRepository.findById(post.getLocationId())
                 .orElseThrow(() -> new IllegalArgumentException("Location not found for post: " + postId));
-                
+
         Business business = businessRepository.findById(location.getBusinessId())
                 .orElseThrow(() -> new IllegalArgumentException("Business not found for location: " + location.getId()));
-                
+
         User user = userRepository.findById(business.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found for business: " + business.getId()));
 
@@ -426,40 +426,65 @@ public class GmbService {
         }
 
         try {
+            // Validate post content
+            String content = post.getContent();
+            if (content == null || content.trim().isEmpty()) {
+                throw new RuntimeException("Post content cannot be empty.");
+            }
+            if (content.length() > 1500) {
+                content = content.substring(0, 1500);
+                log.warn("Post content truncated to 1500 characters");
+            }
+
             String fullLocationName = location.getGoogleLocationId();
             if (!fullLocationName.startsWith("accounts/")) {
                 fullLocationName = business.getGoogleAccountId() + "/" + fullLocationName;
             }
-            
+
             String url = String.format("https://mybusiness.googleapis.com/v4/%s/localPosts", fullLocationName);
-            
+
             HttpHeaders headers = bearerHeaders(token);
-            
+
             Map<String, Object> body = new HashMap<>();
             body.put("languageCode", "en-US");
-            body.put("summary", post.getContent());
-            
-            // Call to Action
+            body.put("summary", content.trim()); // Ensure trimmed
+
+            // Call to Action - ensure valid URL
             Map<String, String> cta = new HashMap<>();
             cta.put("actionType", "LEARN_MORE");
-            cta.put("url", location.getWebsite() != null ? location.getWebsite() : "https://maps.google.com");
+            String ctaUrl = location.getWebsite();
+            if (ctaUrl == null || ctaUrl.trim().isEmpty()) {
+                ctaUrl = "https://maps.google.com/maps/search/" + location.getName();
+            }
+            if (!ctaUrl.startsWith("http")) {
+                ctaUrl = "https://" + ctaUrl;
+            }
+            cta.put("url", ctaUrl);
             body.put("callToAction", cta);
-            
-            // Media/Image
-            if (post.getMediaUrl() != null && !post.getMediaUrl().isEmpty()) {
-                if (!post.getMediaUrl().startsWith("data:")) {
+
+            // Media/Image - only include if valid URL
+            if (post.getMediaUrl() != null && !post.getMediaUrl().isEmpty() && !post.getMediaUrl().startsWith("data:")) {
+                try {
                     Map<String, Object> mediaObj = new HashMap<>();
                     mediaObj.put("mediaFormat", "PHOTO");
                     mediaObj.put("sourceUrl", post.getMediaUrl());
                     body.put("media", List.of(mediaObj));
+                } catch (Exception mediaEx) {
+                    log.warn("Could not add media to post: {}", mediaEx.getMessage());
+                    // Continue without media
                 }
             }
-            
+
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-            log.info("Sending POST request to GMB localPosts API: {}", url);
-            restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            log.info("Sending POST request to GMB localPosts API for location: {}", fullLocationName);
+            log.debug("Post payload: {}", body);
+
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
             log.info("Successfully published local post to Google GMB API for postId: {}", postId);
-            
+
+        } catch (org.springframework.web.client.HttpClientErrorException.BadRequest e) {
+            log.error("Bad request (400) publishing post - invalid data format. Response: {}", e.getResponseBodyAsString());
+            throw new RuntimeException("Invalid post data for Google API: " + e.getResponseBodyAsString(), e);
         } catch (Exception e) {
             log.error("Failed to publish local post to Google GMB API for postId: {}", postId, e);
             throw new RuntimeException("Google Business Profile API error: " + e.getMessage(), e);
@@ -467,7 +492,7 @@ public class GmbService {
     }
 
     public Location updateLocationProfile(
-            String locationId, String name, String category, String phone, String website, String address
+            String locationId, String name, String category, String phone, String website, String address, String description
     ) {
         Location location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new IllegalArgumentException("Location not found with id: " + locationId));
@@ -477,6 +502,7 @@ public class GmbService {
         location.setPhone(phone);
         location.setWebsite(website);
         location.setAddress(address);
+        if (description != null) location.setDescription(description);
         location.setUpdatedAt(LocalDateTime.now());
         Location saved = locationRepository.save(location);
 
@@ -494,8 +520,11 @@ public class GmbService {
         String token = ensureFreshToken(user);
         if (token != null) {
             try {
+                List<String> masks = new ArrayList<>(List.of("title", "websiteUri", "phoneNumbers"));
+                if (description != null && !description.isEmpty()) masks.add("profile.description");
+
                 String url = String.format("https://mybusinessbusinessinformation.googleapis.com/v1/%s" +
-                        "?updateMask=title,websiteUri,phoneNumbers", location.getGoogleLocationId());
+                        "?updateMask=%s", location.getGoogleLocationId(), String.join(",", masks));
                         
                 HttpHeaders headers = bearerHeaders(token);
                 
@@ -505,6 +534,10 @@ public class GmbService {
                 
                 if (phone != null && !phone.isEmpty()) {
                     body.put("phoneNumbers", Map.of("primaryPhone", phone));
+                }
+
+                if (description != null && !description.isEmpty()) {
+                    body.put("profile", Map.of("description", description));
                 }
                 
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
