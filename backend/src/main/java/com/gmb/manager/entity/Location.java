@@ -38,6 +38,8 @@ public class Location {
 
     private String category;
 
+    private String description;
+
     private Double latitude;
 
     private Double longitude;

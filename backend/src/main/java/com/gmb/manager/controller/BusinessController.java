@@ -123,12 +123,13 @@ public class BusinessController {
         String phone = request.get("phone");
         String website = request.get("website");
         String address = request.get("address");
+        String description = request.get("description");
 
         if (name == null || name.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Business Name is required");
         }
 
-        Location updated = gmbService.updateLocationProfile(locationId, name, category, phone, website, address);
+        Location updated = gmbService.updateLocationProfile(locationId, name, category, phone, website, address, description);
         return ResponseEntity.ok(updated);
     }
 }

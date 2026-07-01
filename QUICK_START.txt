@@ -1,0 +1,90 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    CODECRAFTERS TELECALLER PORTAL
+                         Frontend-Only Version
+═══════════════════════════════════════════════════════════════════════════════
+
+📁 FILE TO OPEN:
+   → frontend/public/telecaller.html
+
+⚡ FOUR WAYS TO GET LEADS:
+
+   1. 🗺️ FETCH FROM GOOGLE MAPS (REAL-TIME!)
+      • Get free Google API key: console.cloud.google.com
+      • Click "Google Maps (Real-Time)" tab
+      • Paste API key
+      • Enter location (e.g., "Mumbai, India")
+      • Choose business type (Dental, Restaurant, etc.)
+      • Click "Fetch From Google Maps"
+      • Get REAL verified businesses with phone & ratings!
+
+   2. 🤖 GENERATE SAMPLE LEADS
+      • Click "Generate Sample Leads" tab
+      • Customize city, product type, niche
+      • Click "Run Prospecting Scraper"
+      • Get 50 random sample business leads
+
+   3. 📎 IMPORT CSV FILE
+      • Click "Import CSV File" tab
+      • Upload your CSV with columns: Name, Phone, Type, City, Area, Contact, Email, Website, Product
+      • Instant load into portal
+
+   4. ➕ ADD MANUALLY
+      • Click "Add Lead Manually" tab
+      • Fill in business details
+      • Click "Add This Lead"
+      • Repeat for each prospect
+
+📊 FEATURES:
+   ✓ Search & Filter by name, niche, city, website status
+   ✓ Call Timer - Track call duration
+   ✓ AI Scripts - Opening lines & pitches
+   ✓ Email Templates - Pre-written follow-ups
+   ✓ WhatsApp Integration - Send messages directly
+   ✓ Callback Scheduling - Set reminder times
+   ✓ Call Outcomes - Log interested/callback/rejected
+   ✓ Notes - Store follow-up information
+   ✓ Dark Mode - Night-friendly theme
+   ✓ Export CSV - Download all data anytime
+
+💾 DATA STORAGE:
+   • Saved in browser's local storage
+   • Persists across sessions
+   • No server needed
+   • Private to your computer
+   • ~5MB capacity (10,000+ leads)
+
+🚀 QUICK WORKFLOW:
+   1. Generate leads or import CSV
+   2. Search and filter to find prospects
+   3. Click a lead to open the sales desk
+   4. Start timer → Use scripts → Log outcome
+   5. Add notes and schedule callbacks
+   6. Export CSV for backup
+
+📤 EXPORT:
+   Click "📥 Export Leads CSV" button to download all lead data with call history
+
+🌙 DARK MODE:
+   Click "🌙 Dark Mode" button to toggle theme
+
+🗑️ CLEAR DATA:
+   Click "❌ Wipe Database" to delete all leads
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 SAMPLE CSV FORMAT (for import):
+
+Name,Phone,Type,City,Area,Contact,Email,Website,Product
+Sunrise Dental Clinic,9988998899,Dental Clinic,Mumbai,Andheri West,Dr. Rajesh Kumar,contact@sunrisedental.com,true,Mediva360
+Modern Fashion Store,9876543210,Boutique,Mumbai,Bandra West,Ms. Priya Sharma,priya@fashion.com,false,CRM Software
+Gourmet Restaurant,9123456789,Restaurant,Pune,Koregaon Park,Mr. Amit Desai,reservations@gourmet.com,true,Website
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ THAT'S IT! NO BACKEND, NO SERVER, NO INSTALLATION NEEDED.
+
+Open the HTML file in your browser and start making calls! 📞
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For complete documentation, see: FRONTEND_SETUP.md

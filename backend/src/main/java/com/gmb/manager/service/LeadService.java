@@ -57,28 +57,26 @@ public class LeadService {
     }
 
     public Lead updateLead(String id, Lead updatedLead) {
-        Optional<Lead> existingLead = leadRepository.findById(id);
-        if (existingLead.isPresent()) {
-            Lead lead = existingLead.get();
-            if (updatedLead.getName() != null) lead.setName(updatedLead.getName());
-            if (updatedLead.getType() != null) lead.setType(updatedLead.getType());
-            if (updatedLead.getCity() != null) lead.setCity(updatedLead.getCity());
-            if (updatedLead.getArea() != null) lead.setArea(updatedLead.getArea());
-            if (updatedLead.getContact() != null) lead.setContact(updatedLead.getContact());
-            if (updatedLead.getPhone() != null) lead.setPhone(updatedLead.getPhone());
-            if (updatedLead.getEmail() != null) lead.setEmail(updatedLead.getEmail());
-            if (updatedLead.getProduct() != null) lead.setProduct(updatedLead.getProduct());
-            if (updatedLead.getHasWebsite() != null) lead.setHasWebsite(updatedLead.getHasWebsite());
-            if (updatedLead.getGbp() != null) lead.setGbp(updatedLead.getGbp());
-            if (updatedLead.getSize() != null) lead.setSize(updatedLead.getSize());
-            if (updatedLead.getStatus() != null) lead.setStatus(updatedLead.getStatus());
-            if (updatedLead.getCallbackTime() != null) lead.setCallbackTime(updatedLead.getCallbackTime());
-            if (updatedLead.getCallDuration() != null) lead.setCallDuration(updatedLead.getCallDuration());
-            if (updatedLead.getNotes() != null) lead.setNotes(updatedLead.getNotes());
-            lead.setUpdatedAt(LocalDateTime.now());
-            return leadRepository.save(lead);
-        }
-        return null;
+        Lead lead = leadRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Lead not found with id: " + id));
+
+        if (updatedLead.getName() != null) lead.setName(updatedLead.getName());
+        if (updatedLead.getType() != null) lead.setType(updatedLead.getType());
+        if (updatedLead.getCity() != null) lead.setCity(updatedLead.getCity());
+        if (updatedLead.getArea() != null) lead.setArea(updatedLead.getArea());
+        if (updatedLead.getContact() != null) lead.setContact(updatedLead.getContact());
+        if (updatedLead.getPhone() != null) lead.setPhone(updatedLead.getPhone());
+        if (updatedLead.getEmail() != null) lead.setEmail(updatedLead.getEmail());
+        if (updatedLead.getProduct() != null) lead.setProduct(updatedLead.getProduct());
+        if (updatedLead.getHasWebsite() != null) lead.setHasWebsite(updatedLead.getHasWebsite());
+        if (updatedLead.getGbp() != null) lead.setGbp(updatedLead.getGbp());
+        if (updatedLead.getSize() != null) lead.setSize(updatedLead.getSize());
+        if (updatedLead.getStatus() != null) lead.setStatus(updatedLead.getStatus());
+        if (updatedLead.getCallbackTime() != null) lead.setCallbackTime(updatedLead.getCallbackTime());
+        if (updatedLead.getCallDuration() != null) lead.setCallDuration(updatedLead.getCallDuration());
+        if (updatedLead.getNotes() != null) lead.setNotes(updatedLead.getNotes());
+        lead.setUpdatedAt(LocalDateTime.now());
+        return leadRepository.save(lead);
     }
 
     public void deleteLead(String id) {

@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "field-agent-admin",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/C", "cd /d C:\\Ronak\\field-agent-system\\admin && npx next dev"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}

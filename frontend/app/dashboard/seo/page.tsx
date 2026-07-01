@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { TrendingUp, Sparkles, Search, Star, Lightbulb, BarChart2, Loader2, AlertCircle, ExternalLink } from 'lucide-react';
+import { TrendingUp, Sparkles, Search, Star, Lightbulb, BarChart2, Loader2, AlertCircle, ExternalLink, PenLine, Check, Plus, Upload } from 'lucide-react';
 import { useDashboard } from '../layout';
 
 interface SEOAudit {
@@ -95,7 +95,25 @@ export default function SeoAuditorPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState('');
 
+  // Profile editor state
+  const [editDescription, setEditDescription] = useState('');
+  const [editName, setEditName] = useState('');
+  const [editWebsite, setEditWebsite] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [pushing, setPushing] = useState(false);
+  const [pushSuccess, setPushSuccess] = useState(false);
+
   const token = typeof window !== 'undefined' ? localStorage.getItem('gmb_auth_token') : null;
+
+  // Load location details into the edit fields
+  useEffect(() => {
+    if (selectedLocation) {
+      setEditName(selectedLocation.name || '');
+      setEditWebsite((selectedLocation as any).website || '');
+      setEditPhone((selectedLocation as any).phone || '');
+      setEditDescription((selectedLocation as any).description || '');
+    }
+  }, [selectedLocation]);
 
   const fetchLatestAudit = useCallback(async () => {
     if (!selectedLocation) return;
@@ -137,6 +155,54 @@ export default function SeoAuditorPage() {
       setAnalyzing(false);
     }
   };
+
+  const handlePushProfile = async () => {
+    if (!selectedLocation) return;
+    try {
+      setPushing(true);
+      setPushSuccess(false);
+      const res = await fetch(`${API_URL}/api/locations/${selectedLocation.id}/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: editName,
+          category: (selectedLocation as any).category || '',
+          phone: editPhone,
+          website: editWebsite,
+          address: (selectedLocation as any).address || '',
+          description: editDescription,
+        }),
+      });
+      if (res.ok) {
+        setPushSuccess(true);
+        setTimeout(() => setPushSuccess(false), 3000);
+      }
+    } catch {
+      setError('Failed to push profile update.');
+    } finally {
+      setPushing(false);
+    }
+  };
+
+  const insertKeyword = (keyword: string) => {
+    const trimmed = keyword.trim();
+    if (editDescription.toLowerCase().includes(trimmed.toLowerCase())) return;
+    if (editDescription.length > 0 && !editDescription.endsWith('. ') && !editDescription.endsWith('.')) {
+      setEditDescription(prev => prev + '. ' + trimmed);
+    } else {
+      setEditDescription(prev => prev + trimmed);
+    }
+  };
+
+  const parsedKeywords = audit
+    ? audit.keywordSuggestions
+        .split(',')
+        .map((k) => k.replace(/\n/g, ' ').replace(/^\d+\.\s*/, '').trim())
+        .filter((k) => k.length > 2)
+    : [];
 
   const publicPageUrl = selectedLocation
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/store/${selectedLocation.id}`
@@ -244,6 +310,120 @@ export default function SeoAuditorPage() {
             />
           </div>
 
+          {/* ────────── PROFILE OPTIMIZER SECTION ────────── */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800/60 to-slate-900 border border-slate-700/50 rounded-2xl p-6 space-y-5 relative overflow-hidden">
+            <div className="absolute -bottom-20 -left-20 w-56 h-56 bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex items-center justify-between relative">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-violet-500/15 border border-violet-500/30">
+                  <PenLine className="h-5 w-5 text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-100">Optimize & Push to Google</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Click keywords below to add them to your description, then push live.</p>
+                </div>
+              </div>
+              <button
+                onClick={handlePushProfile}
+                disabled={pushing || !editName}
+                className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+              >
+                {pushing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : pushSuccess ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+                {pushing ? 'Pushing…' : pushSuccess ? 'Updated!' : 'Push to Google'}
+              </button>
+            </div>
+
+            {/* Clickable Keyword Tags */}
+            <div className="relative">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Click to add keyword to description</p>
+              <div className="flex flex-wrap gap-2">
+                {parsedKeywords.map((keyword, i) => {
+                  const isUsed = editDescription.toLowerCase().includes(keyword.toLowerCase());
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => insertKeyword(keyword)}
+                      disabled={isUsed}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full transition-all active:scale-95 ${
+                        isUsed
+                          ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 cursor-default'
+                          : 'bg-sky-500/10 border border-sky-500/30 text-sky-300 hover:bg-sky-500/20 hover:border-sky-400/50 cursor-pointer'
+                      }`}
+                    >
+                      {isUsed ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                      {keyword}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Editable Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Business Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-violet-500/50 transition-colors"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Website</label>
+                <input
+                  type="text"
+                  value={editWebsite}
+                  onChange={(e) => setEditWebsite(e.target.value)}
+                  placeholder="https://yoursite.com"
+                  className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-violet-500/50 transition-colors"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Phone</label>
+                <input
+                  type="text"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-violet-500/50 transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Description Editor */}
+            <div className="space-y-1.5 relative">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Business Description (SEO Optimized)</label>
+                <span className={`text-[10px] font-bold ${editDescription.length > 750 ? 'text-red-400' : editDescription.length > 500 ? 'text-amber-400' : 'text-slate-500'}`}>
+                  {editDescription.length} / 750 chars
+                </span>
+              </div>
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={4}
+                maxLength={750}
+                placeholder="Write a keyword-rich business description. Click keywords above to quickly add them here…"
+                className="w-full px-3 py-3 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-violet-500/50 transition-colors resize-none leading-relaxed"
+              />
+            </div>
+
+            {pushSuccess && (
+              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold animate-in fade-in duration-300">
+                <Check className="h-4 w-4" />
+                Profile updated successfully! Changes pushed to Google Business Profile.
+              </div>
+            )}
+          </div>
+
           {/* Keyword Tag Cloud */}
           <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-5">
             <h3 className="font-bold text-slate-100 flex items-center gap-2 mb-3">
@@ -251,18 +431,14 @@ export default function SeoAuditorPage() {
               Recommended Local Keywords
             </h3>
             <div className="flex flex-wrap gap-2">
-              {audit.keywordSuggestions
-                .split(',')
-                .map((k) => k.replace(/\n/g, ' ').replace(/^\d+\.\s*/, '').trim())
-                .filter((k) => k.length > 2)
-                .map((keyword, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-1 text-xs font-semibold rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300"
-                  >
-                    {keyword}
-                  </span>
-                ))}
+              {parsedKeywords.map((keyword, i) => (
+                <span
+                  key={i}
+                  className="px-3 py-1 text-xs font-semibold rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300"
+                >
+                  {keyword}
+                </span>
+              ))}
             </div>
           </div>
         </div>
