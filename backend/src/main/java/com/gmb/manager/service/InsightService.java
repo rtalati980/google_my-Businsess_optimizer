@@ -18,6 +18,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -25,9 +27,26 @@ public class InsightService {
 
     private final ReviewRepository reviewRepository;
     private final LocationRepository locationRepository;
+    private final GmbService gmbService;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final Map<String, CacheEntry> insightsCache = new ConcurrentHashMap<>();
+
+    private static class CacheEntry {
+        final Map<String, Object> data;
+        final LocalDateTime expiry;
+
+        CacheEntry(Map<String, Object> data, int ttlMinutes) {
+            this.data = data;
+            this.expiry = LocalDateTime.now().plusMinutes(ttlMinutes);
+        }
+
+        boolean isExpired() {
+            return LocalDateTime.now().isAfter(expiry);
+        }
+    }
 
     private static final String PERFORMANCE_API_URL =
             "https://businessprofileperformance.googleapis.com/v1/%s:fetchMultiDailyMetricsTimeSeries" +
@@ -42,6 +61,19 @@ public class InsightService {
             "&dailyRange.endDate.year=%d&dailyRange.endDate.month=%d&dailyRange.endDate.day=%d";
 
     public Map<String, Object> getLocationInsights(String locationId, User user) {
+        return getLocationInsights(locationId, user, false);
+    }
+
+    public Map<String, Object> getLocationInsights(String locationId, User user, boolean refresh) {
+        String cacheKey = locationId + "_" + (user != null ? user.getId() : "null");
+        if (!refresh) {
+            CacheEntry entry = insightsCache.get(cacheKey);
+            if (entry != null && !entry.isExpired()) {
+                log.debug("Returning cached GMB insights for location {}", locationId);
+                return entry.data;
+            }
+        }
+
         List<Review> reviews = reviewRepository.findByLocationId(locationId);
 
         double avgRating;
@@ -59,8 +91,11 @@ public class InsightService {
         insights.put("reviewCount", reviewCount);
 
         boolean realDataLoaded = false;
-        if (user != null && user.getGoogleAccessToken() != null) {
-            realDataLoaded = fetchRealPerformanceData(locationId, user.getGoogleAccessToken(), insights);
+        if (user != null) {
+            String token = gmbService.ensureFreshToken(user);
+            if (token != null) {
+                realDataLoaded = fetchRealPerformanceData(locationId, token, insights);
+            }
         }
 
         if (!realDataLoaded) {
@@ -74,6 +109,8 @@ public class InsightService {
 
         insights.put("reviewGrowth", buildReviewGrowth(reviews));
         insights.put("dailyInteractions", buildDailyInteractions(insights));
+
+        insightsCache.put(cacheKey, new CacheEntry(insights, 60));
 
         return insights;
     }

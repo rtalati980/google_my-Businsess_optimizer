@@ -96,7 +96,7 @@ public class ReviewRequestService {
     public List<ReviewRequest> sendReviewRequests(String locationId, List<String> requestIds) {
         log.info("Sending {} review requests for location {}", requestIds.size(), locationId);
 
-        List<ReviewRequest> requests = reviewRequestRepository.findById(requestIds);
+        List<ReviewRequest> requests = reviewRequestRepository.findAllById(requestIds);
         List<ReviewRequest> sent = new ArrayList<>();
 
         for (ReviewRequest request : requests) {

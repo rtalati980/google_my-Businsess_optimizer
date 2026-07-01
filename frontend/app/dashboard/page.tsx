@@ -6,7 +6,8 @@ import { apiService } from '@/lib/api';
 import { DashboardInsights } from '@/lib/types';
 import { 
   TrendingUp, Phone, Globe, Navigation, Search, 
-  Map, Star, MessageSquare, AlertCircle, Loader2, ArrowUpRight
+  Map, Star, MessageSquare, AlertCircle, Loader2, ArrowUpRight,
+  RefreshCw
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
@@ -17,24 +18,31 @@ export default function DashboardPage() {
   const { selectedLocation } = useDashboard();
   const [insights, setInsights] = useState<DashboardInsights | null>(null);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchInsights = async () => {
-      if (!selectedLocation) return;
-      try {
+  const fetchInsights = async (forceRefresh = false) => {
+    if (!selectedLocation) return;
+    try {
+      if (forceRefresh) {
+        setRefreshing(true);
+      } else {
         setLoading(true);
-        setError(null);
-        const data = await apiService.getLocationInsights(selectedLocation.id);
-        setInsights(data);
-      } catch (err: any) {
-        console.error('Error fetching insights:', err);
-        setError('Failed to load insights for this location.');
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchInsights();
+      setError(null);
+      const data = await apiService.getLocationInsights(selectedLocation.id, forceRefresh);
+      setInsights(data);
+    } catch (err: any) {
+      console.error('Error fetching insights:', err);
+      setError('Failed to load insights for this location.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInsights(false);
   }, [selectedLocation]);
 
   if (loading) {
@@ -100,11 +108,30 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Profile Insights</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Performance analytics synced from Google Business Profile for {selectedLocation.name}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Profile Insights</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Performance analytics synced from Google Business Profile for {selectedLocation.name}
+          </p>
+        </div>
+        <button
+          onClick={() => fetchInsights(true)}
+          disabled={loading || refreshing}
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-xs font-bold rounded-xl active:scale-95 transition-all text-slate-300 disabled:opacity-50"
+        >
+          {refreshing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin text-violet-400" />
+              Syncing live...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="h-4 w-4 text-violet-400" />
+              Sync GMB metrics
+            </>
+          )}
+        </button>
       </div>
 
       {/* Metrics Cards */}

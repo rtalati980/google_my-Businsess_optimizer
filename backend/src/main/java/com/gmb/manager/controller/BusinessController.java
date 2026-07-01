@@ -97,13 +97,14 @@ public class BusinessController {
     @GetMapping("/locations/{locationId}/insights")
     public ResponseEntity<?> getInsights(
             @AuthenticationPrincipal User user,
-            @PathVariable String locationId
+            @PathVariable String locationId,
+            @RequestParam(required = false, defaultValue = "false") boolean refresh
     ) {
         Location location = locationRepository.findById(locationId).orElse(null);
         if (location == null) return ResponseEntity.notFound().build();
         if (!isOwner(location, user)) return ResponseEntity.status(403).body("Access Denied");
 
-        Map<String, Object> insights = insightService.getLocationInsights(locationId, user);
+        Map<String, Object> insights = insightService.getLocationInsights(locationId, user, refresh);
         return ResponseEntity.ok(insights);
     }
 

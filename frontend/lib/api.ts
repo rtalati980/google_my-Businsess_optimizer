@@ -74,8 +74,8 @@ export const apiService = {
     return response.data;
   },
 
-  getLocationInsights: async (locationId: string): Promise<DashboardInsights> => {
-    const response = await api.get<DashboardInsights>(`/api/locations/${locationId}/insights`);
+  getLocationInsights: async (locationId: string, refresh = false): Promise<DashboardInsights> => {
+    const response = await api.get<DashboardInsights>(`/api/locations/${locationId}/insights${refresh ? '?refresh=true' : ''}`);
     return response.data;
   },
 
