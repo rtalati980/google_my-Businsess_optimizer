@@ -3,37 +3,37 @@
 import React, { useEffect, useState } from 'react';
 import { useDashboard } from '../layout';
 import { apiService } from '@/lib/api';
-import { 
-  BarChart3, TrendingUp, Users, MessageSquare, 
-  Sparkles, CheckCircle, AlertCircle, Loader2, ArrowRight
+import {
+  TrendingUp, Users, DollarSign, AlertTriangle, Loader2, Download, BarChart3
 } from 'lucide-react';
 
 export default function AnalyticsPage() {
   const { selectedLocation } = useDashboard();
+  const [dashboard, setDashboard] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<any>(null);
-
-  const fetchAnalytics = async () => {
-    if (!selectedLocation) return;
-    try {
-      setLoading(true);
-      const res = await apiService.getSentimentAnalysis(selectedLocation.id);
-      setData(res);
-    } catch (err) {
-      console.error('Error fetching sentiment analysis:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchAnalytics();
   }, [selectedLocation]);
 
+  const fetchAnalytics = async () => {
+    if (!selectedLocation) return;
+    try {
+      setLoading(true);
+      const data = await apiService.getDashboardAnalytics(selectedLocation.id);
+      setDashboard(data);
+    } catch (err) {
+      console.error('Error fetching analytics:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!selectedLocation) {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center text-muted-foreground">
-        <AlertCircle className="h-8 w-8 text-primary mb-2" />
+        <AlertTriangle className="h-8 w-8 text-primary mb-2" />
         <p>Please select a business location first.</p>
       </div>
     );
@@ -43,7 +43,7 @@ export default function AnalyticsPage() {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center text-muted-foreground gap-2">
         <Loader2 className="h-8 w-8 text-primary animate-spin" />
-        <p className="text-sm">Generating sentiment intelligence...</p>
+        <p className="text-sm">Loading Business Intelligence Hub...</p>
       </div>
     );
   }

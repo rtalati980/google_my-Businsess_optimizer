@@ -223,5 +223,107 @@ export const apiService = {
     const response = await api.put(`/api/locations/${locationId}/notification-settings`, settings);
     return response.data;
   },
+
+  // Review Requests (Auto-Review Generation)
+  generateReviewRequests: async (
+    locationId: string,
+    customers: Array<{ name: string; phone?: string; email?: string }>,
+    requestType: string
+  ): Promise<any> => {
+    const response = await api.post(`/api/locations/${locationId}/review-requests/generate`, {
+      customers,
+      requestType,
+    });
+    return response.data;
+  },
+
+  sendReviewRequests: async (locationId: string, requestIds: string[]): Promise<any> => {
+    const response = await api.post(`/api/locations/${locationId}/review-requests/send`, {
+      requestIds,
+    });
+    return response.data;
+  },
+
+  getReviewRequests: async (locationId: string): Promise<any[]> => {
+    const response = await api.get(`/api/locations/${locationId}/review-requests`);
+    return response.data;
+  },
+
+  getReviewRequestStats: async (locationId: string): Promise<any> => {
+    const response = await api.get(`/api/locations/${locationId}/review-requests/stats`);
+    return response.data;
+  },
+
+  markReviewRequestCompleted: async (requestId: string): Promise<any> => {
+    const response = await api.post(`/api/review-requests/${requestId}/complete`);
+    return response.data;
+  },
+
+  // SEO-Optimized Posts
+  generateOptimizedPost: async (
+    locationId: string,
+    postType: string,
+    topic?: string,
+    includeImage?: boolean
+  ): Promise<any> => {
+    const response = await api.post(`/api/locations/${locationId}/posts/generate-optimized`, {
+      postType,
+      topic,
+      includeImage,
+    });
+    return response.data;
+  },
+
+  getSeoMetrics: async (postId: string): Promise<any> => {
+    const response = await api.get(`/api/posts/${postId}/seo-metrics`);
+    return response.data;
+  },
+
+  // Advanced Analytics
+  getDashboardAnalytics: async (locationId: string): Promise<any> => {
+    const response = await api.get(`/api/locations/${locationId}/analytics/dashboard`);
+    return response.data;
+  },
+
+  getCustomersList: async (locationId: string): Promise<any[]> => {
+    const response = await api.get(`/api/locations/${locationId}/analytics/customers`);
+    return response.data;
+  },
+
+  getCustomerLtvAnalysis: async (locationId: string): Promise<any> => {
+    const response = await api.get(`/api/locations/${locationId}/analytics/customer-ltv`);
+    return response.data;
+  },
+
+  getChurnAnalysis: async (locationId: string): Promise<any> => {
+    const response = await api.get(`/api/locations/${locationId}/analytics/churn-risk`);
+    return response.data;
+  },
+
+  getConversionFunnel: async (locationId: string): Promise<any> => {
+    const response = await api.get(`/api/locations/${locationId}/analytics/conversion-funnel`);
+    return response.data;
+  },
+
+  getRoiByChannel: async (locationId: string): Promise<any> => {
+    const response = await api.get(`/api/locations/${locationId}/analytics/roi-by-channel`);
+    return response.data;
+  },
+
+  getEngagementTrends: async (locationId: string): Promise<any> => {
+    const response = await api.get(`/api/locations/${locationId}/analytics/trends`);
+    return response.data;
+  },
+
+  // Usage Tracking
+  getUserUsage: async (): Promise<any> => {
+    const response = await api.get('/api/usage');
+    return response.data;
+  },
+
+  resetMonthlyQuotas: async (): Promise<any> => {
+    const response = await api.post('/api/usage/reset-monthly');
+    return response.data;
+  },
 };
 export default api;

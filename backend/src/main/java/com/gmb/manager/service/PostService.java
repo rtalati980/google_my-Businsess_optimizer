@@ -2,14 +2,20 @@ package com.gmb.manager.service;
 
 import com.gmb.manager.entity.Location;
 import com.gmb.manager.entity.Post;
+import com.gmb.manager.entity.PostSeoMetrics;
+import com.gmb.manager.entity.Review;
 import com.gmb.manager.repository.LocationRepository;
 import com.gmb.manager.repository.PostRepository;
+import com.gmb.manager.repository.PostSeoMetricsRepository;
+import com.gmb.manager.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -18,8 +24,11 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final LocationRepository locationRepository;
+    private final PostSeoMetricsRepository postSeoMetricsRepository;
+    private final ReviewRepository reviewRepository;
     private final AiService aiService;
     private final GmbService gmbService;
+    private final SeoOptimizationService seoOptimizationService;
 
     public List<Post> getPostsByLocation(String locationId) {
         return postRepository.findByLocationId(locationId);
@@ -124,5 +133,57 @@ public class PostService {
         post.setPublishedAt(LocalDateTime.now());
         post.setUpdatedAt(LocalDateTime.now());
         return postRepository.save(post);
+    }
+
+    public Map<String, Object> generateOptimizedPost(String locationId, String postType, String topic, boolean includeImage) {
+        log.info("Generating SEO-optimized post for location {}", locationId);
+
+        Location location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new IllegalArgumentException("Location not found with id: " + locationId));
+
+        // Generate initial post
+        Post initialPost = generatePost(locationId, postType, topic, includeImage);
+
+        // Extract keywords from reviews for SEO optimization
+        List<Review> reviews = reviewRepository.findByLocationId(locationId);
+        List<String> suggestedKeywords = seoOptimizationService.extractKeywordsFromReviews(reviews);
+
+        // Optimize content for SEO
+        String optimizedContent = seoOptimizationService.generateSeoOptimizedContent(
+                initialPost.getContent(), location, suggestedKeywords
+        );
+
+        initialPost.setContent(optimizedContent);
+        initialPost.setUpdatedAt(LocalDateTime.now());
+        Post savedPost = postRepository.save(initialPost);
+
+        // Calculate SEO metrics
+        PostSeoMetrics metrics = seoOptimizationService.calculateSeoMetrics(savedPost, optimizedContent, location);
+        PostSeoMetrics savedMetrics = postSeoMetricsRepository.save(metrics);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("post", savedPost);
+        result.put("seoMetrics", savedMetrics);
+        result.put("optimization", Map.of(
+                "seoScore", savedMetrics.getSeoScore(),
+                "targetKeywords", savedMetrics.getTargetKeywords(),
+                "estimatedReach", savedMetrics.getEstimatedReach(),
+                "keywordDensity", String.format("%.1f%%", savedMetrics.getKeywordDensity()),
+                "readabilityScore", String.format("%.1f", savedMetrics.getReadabilityScore()),
+                "callToActionPresent", savedMetrics.getCallToActionPresent(),
+                "localityMentions", savedMetrics.getLocalityMentions(),
+                "mobileOptimized", savedMetrics.getMobileOptimized()
+        ));
+
+        return result;
+    }
+
+    public PostSeoMetrics getSeoMetrics(String postId) {
+        return postSeoMetricsRepository.findByPostId(postId)
+                .orElseThrow(() -> new IllegalArgumentException("SEO metrics not found for post: " + postId));
+    }
+
+    public List<PostSeoMetrics> getHighScoringPosts(String locationId, Integer minScore) {
+        return postSeoMetricsRepository.findByLocationIdAndSeoScoreGreaterThanEqualOrderBySeoScoreDesc(locationId, minScore);
     }
 }

@@ -95,4 +95,38 @@ public class PostController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PostMapping("/locations/{locationId}/posts/generate-optimized")
+    public ResponseEntity<?> generateOptimizedPost(
+            @AuthenticationPrincipal User user,
+            @PathVariable String locationId,
+            @RequestBody Map<String, Object> request
+    ) {
+        Location location = locationRepository.findById(locationId).orElse(null);
+        if (location == null) return ResponseEntity.notFound().build();
+        if (!isOwner(location, user)) return ResponseEntity.status(403).body("Access Denied");
+
+        String postType = request.getOrDefault("postType", "WEEKLY").toString();
+        String topic = request.containsKey("topic") && request.get("topic") != null ? request.get("topic").toString() : null;
+        boolean includeImage = request.containsKey("includeImage") && Boolean.parseBoolean(request.get("includeImage").toString());
+
+        try {
+            Map<String, Object> result = postService.generateOptimizedPost(locationId, postType, topic, includeImage);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/posts/{postId}/seo-metrics")
+    public ResponseEntity<?> getSeoMetrics(
+            @AuthenticationPrincipal User user,
+            @PathVariable String postId
+    ) {
+        try {
+            return ResponseEntity.ok(postService.getSeoMetrics(postId));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }
