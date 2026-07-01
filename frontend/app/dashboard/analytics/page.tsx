@@ -4,14 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { useDashboard } from '../layout';
 import { apiService } from '@/lib/api';
 import {
-  TrendingUp, Users, DollarSign, AlertTriangle, Loader2, Download, BarChart3
+  TrendingUp, Users, DollarSign, AlertTriangle, Loader2, Download, BarChart3,
+  Sparkles, CheckCircle, MessageSquare
 } from 'lucide-react';
 
 export default function AnalyticsPage() {
   const { selectedLocation } = useDashboard();
   const [dashboard, setDashboard] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchAnalytics();
@@ -48,9 +48,10 @@ export default function AnalyticsPage() {
     );
   }
 
-  if (!data) return null;
+  if (!dashboard) return null;
 
-  // Calculate percentages
+  // Calculate percentages from sentiment data (if available)
+  const data = dashboard;
   const total = data.totalReviews || 0;
   const positivePct = total === 0 ? 0 : Math.round((data.positiveCount / total) * 100);
   const neutralPct = total === 0 ? 0 : Math.round((data.neutralCount / total) * 100);
