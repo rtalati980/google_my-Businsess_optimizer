@@ -15,58 +15,74 @@ import java.util.*;
 @Slf4j
 public class AiService {
 
-    @Value("${app.anthropic.api-key:mock-key}")
+    @Value("${app.gemini.api-key:mock-key}")
     private String apiKey;
 
-    @Value("${app.anthropic.api-url:https://api.anthropic.com/v1/messages}")
+    @Value("${app.gemini.api-url:https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent}")
     private String apiUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * Generates content using Claude API. If the API key is empty/mock or errors occur,
+     * Generates content using Google Gemini API. If the API key is empty/mock or errors occur,
      * falls back to realistic mock content.
      */
     public String generateContent(String systemInstruction, String userPrompt) {
         if (apiKey == null || apiKey.equals("mock-key") || apiKey.trim().isEmpty()) {
-            log.info("Using simulation mode for AI generation (no valid Anthropic API key configured)");
+            log.info("Using simulation mode for AI generation (no valid Gemini API key configured)");
             return simulateResponse(systemInstruction, userPrompt);
         }
 
         try {
+            // Gemini uses API key as a query parameter
+            String url = apiUrl + "?key=" + apiKey;
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("x-api-key", apiKey);
-            headers.set("anthropic-version", "2023-06-01");
 
+            // Build Gemini request body
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "claude-sonnet-4-6");
-            requestBody.put("max_tokens", 2048);
-            
+
+            // Add system instruction if provided
             if (systemInstruction != null && !systemInstruction.trim().isEmpty()) {
-                requestBody.put("system", systemInstruction);
+                Map<String, Object> systemPart = new HashMap<>();
+                systemPart.put("parts", Collections.singletonList(
+                        Collections.singletonMap("text", systemInstruction)
+                ));
+                requestBody.put("system_instruction", systemPart);
             }
 
-            Map<String, String> message = new HashMap<>();
-            message.put("role", "user");
-            message.put("content", userPrompt);
-            requestBody.put("messages", Collections.singletonList(message));
+            // Add user message
+            Map<String, Object> userMessage = new HashMap<>();
+            userMessage.put("role", "user");
+            userMessage.put("parts", Collections.singletonList(
+                    Collections.singletonMap("text", userPrompt)
+            ));
+            requestBody.put("contents", Collections.singletonList(userMessage));
+
+            // Add generation config
+            Map<String, Object> generationConfig = new HashMap<>();
+            generationConfig.put("maxOutputTokens", 2048);
+            requestBody.put("generationConfig", generationConfig);
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 JsonNode root = objectMapper.readTree(response.getBody());
-                JsonNode contentArray = root.path("content");
-                if (contentArray.isArray() && !contentArray.isEmpty()) {
-                    return contentArray.get(0).path("text").asText();
+                JsonNode candidates = root.path("candidates");
+                if (candidates.isArray() && !candidates.isEmpty()) {
+                    JsonNode parts = candidates.get(0).path("content").path("parts");
+                    if (parts.isArray() && !parts.isEmpty()) {
+                        return parts.get(0).path("text").asText();
+                    }
                 }
             }
-            throw new RuntimeException("Unexpected response format from Anthropic API");
+            throw new RuntimeException("Unexpected response format from Gemini API");
         } catch (Exception e) {
-            log.error("Error calling Anthropic API: {}. Falling back to simulated response.", e.getMessage());
+            log.error("Error calling Gemini API: {}. Falling back to simulated response.", e.getMessage());
             return simulateResponse(systemInstruction, userPrompt);
         }
     }
