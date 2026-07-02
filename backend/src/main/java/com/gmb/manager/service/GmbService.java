@@ -435,31 +435,26 @@ public class GmbService {
                 throw new RuntimeException("Post content exceeds Google API limit of 300 characters. Current: " + content.length() + " chars. Please shorten your post.");
             }
 
-            String fullLocationName = location.getGoogleLocationId();
-            if (!fullLocationName.startsWith("accounts/")) {
-                fullLocationName = business.getGoogleAccountId() + "/" + fullLocationName;
+            // Build full location resource name in correct format
+            String accountId = business.getGoogleAccountId();
+            String locationId = location.getGoogleLocationId();
+
+            // Remove "accounts/" prefix if present in location ID
+            if (locationId.startsWith("accounts/")) {
+                locationId = locationId.substring("accounts/".length());
+            }
+            // Remove account ID from location if it's duplicated
+            if (locationId.startsWith(accountId + "/")) {
+                locationId = locationId.substring((accountId + "/").length());
             }
 
+            String fullLocationName = String.format("accounts/%s/locations/%s", accountId, locationId);
             String url = String.format("https://mybusiness.googleapis.com/v4/%s/localPosts", fullLocationName);
 
             HttpHeaders headers = bearerHeaders(token);
 
             Map<String, Object> body = new HashMap<>();
-            body.put("languageCode", "en-US");
-            body.put("summary", content.trim()); // Ensure trimmed
-
-            // Call to Action - ensure valid URL
-            Map<String, String> cta = new HashMap<>();
-            cta.put("actionType", "LEARN_MORE");
-            String ctaUrl = location.getWebsite();
-            if (ctaUrl == null || ctaUrl.trim().isEmpty()) {
-                ctaUrl = "https://maps.google.com/maps/search/" + location.getName();
-            }
-            if (!ctaUrl.startsWith("http")) {
-                ctaUrl = "https://" + ctaUrl;
-            }
-            cta.put("url", ctaUrl);
-            body.put("callToAction", cta);
+            body.put("summary", content.trim()); // Post content (required, max 300 chars)
 
             // Media/Image - only include if valid URL
             if (post.getMediaUrl() != null && !post.getMediaUrl().isEmpty() && !post.getMediaUrl().startsWith("data:")) {
@@ -468,6 +463,7 @@ public class GmbService {
                     mediaObj.put("mediaFormat", "PHOTO");
                     mediaObj.put("sourceUrl", post.getMediaUrl());
                     body.put("media", List.of(mediaObj));
+                    log.info("Including media in post: {}", post.getMediaUrl());
                 } catch (Exception mediaEx) {
                     log.warn("Could not add media to post: {}", mediaEx.getMessage());
                     // Continue without media
@@ -482,8 +478,14 @@ public class GmbService {
             log.info("Successfully published local post to Google GMB API for postId: {}", postId);
 
         } catch (org.springframework.web.client.HttpClientErrorException.BadRequest e) {
-            log.error("Bad request (400) publishing post - invalid data format. Response: {}", e.getResponseBodyAsString());
-            throw new RuntimeException("Invalid post data for Google API: " + e.getResponseBodyAsString(), e);
+            String errorBody = e.getResponseBodyAsString();
+            log.error("Bad request (400) publishing post. Response body: {}", errorBody);
+            log.error("Request was sent to: {}", String.format("https://mybusiness.googleapis.com/v4/%s/localPosts", post.getLocationId()));
+            throw new RuntimeException("Google API rejected post: " + errorBody, e);
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            String errorBody = e.getResponseBodyAsString();
+            log.error("HTTP {} error publishing post. Response: {}", e.getStatusCode(), errorBody);
+            throw new RuntimeException("Google API error (" + e.getStatusCode() + "): " + errorBody, e);
         } catch (Exception e) {
             log.error("Failed to publish local post to Google GMB API for postId: {}", postId, e);
             throw new RuntimeException("Google Business Profile API error: " + e.getMessage(), e);
