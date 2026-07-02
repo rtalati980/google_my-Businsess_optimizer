@@ -60,7 +60,7 @@ public class PostController {
             Post post = postService.generatePost(locationId, postType, topic, includeImage);
             return ResponseEntity.ok(post);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -73,13 +73,13 @@ public class PostController {
         String content = request.get("content");
         String mediaUrl = request.get("mediaUrl");
         if (content == null || content.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Content cannot be empty");
+            return ResponseEntity.badRequest().body(Map.of("message", "Content cannot be empty"));
         }
         try {
             Post post = postService.updatePost(postId, content, mediaUrl);
             return ResponseEntity.ok(post);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -92,7 +92,7 @@ public class PostController {
             Post post = postService.publishPost(postId);
             return ResponseEntity.ok(post);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -114,7 +114,7 @@ public class PostController {
             Map<String, Object> result = postService.generateOptimizedPost(locationId, postType, topic, includeImage);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
