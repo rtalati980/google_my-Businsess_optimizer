@@ -435,20 +435,28 @@ public class GmbService {
                 throw new RuntimeException("Post content exceeds Google API limit of 300 characters. Current: " + content.length() + " chars. Please shorten your post.");
             }
 
-            // Build full location resource name in correct format
+            // Build full location resource name in correct format (strip prefixes if already present to avoid duplication)
             String accountId = business.getGoogleAccountId();
             String locationId = location.getGoogleLocationId();
 
-            // Remove "accounts/" prefix if present in location ID
-            if (locationId.startsWith("accounts/")) {
-                locationId = locationId.substring("accounts/".length());
-            }
-            // Remove account ID from location if it's duplicated
-            if (locationId.startsWith(accountId + "/")) {
-                locationId = locationId.substring((accountId + "/").length());
+            String rawAccountId = accountId;
+            if (rawAccountId.startsWith("accounts/")) {
+                rawAccountId = rawAccountId.substring("accounts/".length());
             }
 
-            String fullLocationName = String.format("accounts/%s/locations/%s", accountId, locationId);
+            String rawLocationId = locationId;
+            if (rawLocationId.startsWith("locations/")) {
+                rawLocationId = rawLocationId.substring("locations/".length());
+            }
+            if (rawLocationId.startsWith("accounts/")) {
+                rawLocationId = rawLocationId.substring("accounts/".length());
+            }
+            if (rawLocationId.contains("/")) {
+                String[] parts = rawLocationId.split("/");
+                rawLocationId = parts[parts.length - 1];
+            }
+
+            String fullLocationName = String.format("accounts/%s/locations/%s", rawAccountId, rawLocationId);
             String url = String.format("https://mybusiness.googleapis.com/v4/%s/localPosts", fullLocationName);
 
             HttpHeaders headers = bearerHeaders(token);
