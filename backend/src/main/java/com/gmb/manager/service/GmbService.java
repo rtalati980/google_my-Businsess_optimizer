@@ -463,6 +463,8 @@ public class GmbService {
 
             Map<String, Object> body = new HashMap<>();
             body.put("summary", content.trim()); // Post content (required, max 300 chars)
+            body.put("topicType", "STANDARD"); // Topic type (required)
+            body.put("languageCode", "en-US"); // Language code (required/recommended)
 
             // Media/Image - only include if valid URL
             if (post.getMediaUrl() != null && !post.getMediaUrl().isEmpty() && !post.getMediaUrl().startsWith("data:")) {
