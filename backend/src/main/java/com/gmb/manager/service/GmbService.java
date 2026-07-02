@@ -542,8 +542,8 @@ public class GmbService {
                 }
                 
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-                log.info("Sending PATCH request to Google Business Info API: {}", url);
-                restTemplate.exchange(url, HttpMethod.PATCH, entity, String.class);
+                log.info("Sending PUT request to Google Business Info API: {}", url);
+                restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
                 log.info("Successfully updated GMB profile on Google Business Info API for locationId: {}", locationId);
                 
             } catch (Exception e) {
