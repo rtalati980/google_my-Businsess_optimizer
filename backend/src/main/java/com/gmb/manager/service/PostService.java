@@ -48,38 +48,43 @@ public class PostService {
 
         String systemInstruction = String.format(
                 "You are GMB AI Manager, an expert social media copywriter specializing in local business marketing for '%s', which is a '%s' business. " +
-                "Write a highly engaging, short Google Business Profile post (maximum 300 words) that is SPECIFIC to this exact business. " +
+                "Write a VERY SHORT, highly engaging Google Business Profile post (MAXIMUM 280 CHARACTERS) that is SPECIFIC to this exact business. " +
                 "Reference what customers love about this business (based on their reviews). " +
                 "The content must be UNIQUE to '%s' - not generic. " +
-                "Customize to the business's region (India/USA/Europe) with appropriate spellings and local expressions. " +
-                "Include a strong call to action and relevant emojis.\n" +
-                "Customer feedback themes: %s",
+                "Customize to the business's region (India/USA/Europe) with appropriate spellings. " +
+                "Include relevant emojis and a strong call to action.\n" +
+                "Customer feedback themes: %s\n\n" +
+                "CRITICAL: Your response MUST be under 280 characters. Count every character including spaces and emojis.",
                 location.getName(), location.getCategory(), location.getName(), reviewSummary
         );
 
         String prompt = String.format(
-                "Generate a Google Business Profile post for THIS SPECIFIC BUSINESS:\n\n" +
+                "Generate a CONCISE Google Business Profile post for THIS SPECIFIC BUSINESS:\n\n" +
                 "Business Name: %s\n" +
                 "Category: %s\n" +
-                "Address: %s\n" +
                 "Post Type: %s\n" +
-                "Post Topic/Instructions: %s\n\n" +
-                "Requirements:\n" +
-                "1. Make it SPECIFIC to %s - include actual details about this business\n" +
-                "2. Reference what customers love (positive review themes)\n" +
-                "3. Use business-specific language and offerings\n" +
-                "4. Strong call-to-action encouraging visits/bookings\n" +
-                "5. Maximum 300 characters\n\n" +
-                "Generate ONLY the final post text with no titles or surrounding quotes.",
+                "Topic: %s\n\n" +
+                "STRICT REQUIREMENTS:\n" +
+                "1. Keep it UNDER 280 characters (count spaces and emojis!)\n" +
+                "2. Be SPECIFIC to %s\n" +
+                "3. Include what customers love\n" +
+                "4. Add relevant emoji(s)\n" +
+                "5. Strong call-to-action\n\n" +
+                "Return ONLY the post text. No quotes, no titles, no extra text.",
                 location.getName(),
                 location.getCategory(),
-                location.getAddress(),
                 postType,
                 topic != null && !topic.trim().isEmpty() ? topic : "Share what makes this business special",
                 location.getName()
         );
 
         String generatedContent = aiService.generateContent(systemInstruction, prompt);
+
+        // ENFORCE 300 char limit - truncate if needed
+        if (generatedContent.length() > 300) {
+            generatedContent = generatedContent.substring(0, 295) + "...";
+            log.warn("Post truncated from {} to 298 chars", generatedContent.length());
+        }
 
         String mediaUrl = null;
         if (includeImage) {
@@ -189,6 +194,12 @@ public class PostService {
         String optimizedContent = seoOptimizationService.generateSeoOptimizedContent(
                 initialPost.getContent(), location, suggestedKeywords
         );
+
+        // Enforce 300 char limit after SEO optimization
+        if (optimizedContent.length() > 300) {
+            optimizedContent = optimizedContent.substring(0, 295) + "...";
+            log.warn("Optimized post truncated to 298 chars after SEO optimization");
+        }
 
         initialPost.setContent(optimizedContent);
         initialPost.setUpdatedAt(LocalDateTime.now());
