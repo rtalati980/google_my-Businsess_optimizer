@@ -96,14 +96,21 @@ export default function PostsPage() {
       alert('✓ Post published successfully to Google Business Profile!');
     } catch (err: any) {
       console.error('Error publishing post:', err);
-      const errorMsg = err.response?.data?.message || err.response?.data || err.message || 'Failed to publish post';
+      const errorData = err.response?.data;
+      const errorMsg = typeof errorData === 'object' ? errorData?.message : errorData;
       const statusCode = err.response?.status;
 
-      let userMessage = 'Error publishing post: ' + errorMsg;
-      if (statusCode === 401) {
+      let userMessage = 'Error publishing post';
+      if (statusCode === 400) {
+        userMessage = `Invalid post data:\n${errorMsg || 'Please check post content and try again'}`;
+      } else if (statusCode === 401) {
         userMessage = 'Authentication failed. Please reconnect your Google Business Profile.';
       } else if (statusCode === 403) {
         userMessage = 'Access denied. You may not have permission to publish posts for this location.';
+      } else if (statusCode === 500) {
+        userMessage = 'Server error. Please try again later.';
+      } else {
+        userMessage = errorMsg ? `Error: ${errorMsg}` : err.message || 'Failed to publish post';
       }
 
       alert(userMessage);
