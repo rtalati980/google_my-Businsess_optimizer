@@ -9,7 +9,9 @@ RUN apk add --no-cache maven && mvn package -DskipTests -q
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
+RUN mkdir -p /app/logs && chown spring:spring /app/logs
 USER spring:spring
 COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
