@@ -4,10 +4,19 @@ import React, { useEffect, useState } from 'react';
 import { useDashboard } from '../layout';
 import { apiService } from '@/lib/api';
 import { Post } from '@/lib/types';
-import { 
-  Megaphone, Sparkles, AlertCircle, Loader2, 
-  Send, Edit3, Calendar, Check, Save, Clock
+import {
+  Sparkles, AlertCircle, Loader2, Send, Edit3, Check, Clock,
+  Image as ImageIcon, Zap, Target, TrendingUp, Copy, Trash2
 } from 'lucide-react';
+
+interface PostTemplate {
+  name: string;
+  emoji: string;
+  value: string;
+  description: string;
+  color: string;
+  example: string;
+}
 
 export default function PostsPage() {
   const { selectedLocation } = useDashboard();
@@ -21,6 +30,44 @@ export default function PostsPage() {
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [includeImage, setIncludeImage] = useState(true);
+  const [tabActive, setTabActive] = useState('create');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const postTemplates: PostTemplate[] = [
+    {
+      name: 'Weekly Update',
+      emoji: '📅',
+      value: 'WEEKLY',
+      description: 'Build customer loyalty with consistent weekly updates about your business.',
+      color: 'from-blue-500 to-cyan-500',
+      example: '👋 Happy Monday! We\'re open and excited to serve you this week!'
+    },
+    {
+      name: 'Festival Greetings',
+      emoji: '🎉',
+      value: 'FESTIVAL',
+      description: 'Engage customers during holidays and local celebrations.',
+      color: 'from-purple-500 to-pink-500',
+      example: '🎄 Wishing you a magical holiday season!'
+    },
+    {
+      name: 'Special Offers',
+      emoji: '🔥',
+      value: 'PROMOTION',
+      description: 'Drive sales with time-limited promotions and exclusive deals.',
+      color: 'from-orange-500 to-red-500',
+      example: '⚡ Limited time: 20% OFF all services this weekend only!'
+    },
+    {
+      name: 'Product Showcase',
+      emoji: '✨',
+      value: 'PRODUCT',
+      description: 'Highlight your best offerings and specialty items.',
+      color: 'from-yellow-500 to-amber-500',
+      example: '🌟 Check out our new premium selection in stock now!'
+    },
+  ];
 
   const fetchPosts = async () => {
     if (!selectedLocation) return;
@@ -28,8 +75,10 @@ export default function PostsPage() {
       setLoading(true);
       const data = await apiService.getPosts(selectedLocation.id);
       setPosts(data);
+      setErrorMsg('');
     } catch (err) {
       console.error('Error fetching posts:', err);
+      setErrorMsg('Failed to load campaign history');
     } finally {
       setLoading(false);
     }
@@ -44,14 +93,21 @@ export default function PostsPage() {
   const handleGeneratePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedLocation) return;
+
+    setErrorMsg('');
+    setSuccessMsg('');
+
     try {
       setGenerating(true);
       const post = await apiService.generatePost(selectedLocation.id, postType, topic, includeImage);
       setActiveDraft(post);
       setDraftContent(post.content);
       setTopic('');
-    } catch (err) {
+      setTabActive('edit');
+      setSuccessMsg('✨ Post generated! Review and customize it below.');
+    } catch (err: any) {
       console.error('Error generating post:', err);
+      setErrorMsg(err.response?.data?.message || 'Failed to generate post. Please try again.');
     } finally {
       setGenerating(false);
     }
@@ -61,11 +117,14 @@ export default function PostsPage() {
     if (!activeDraft) return;
     try {
       setSaving(true);
+      setErrorMsg('');
       const updated = await apiService.updatePost(activeDraft.id, draftContent, activeDraft.mediaUrl);
       setActiveDraft(updated);
       await fetchPosts();
-    } catch (err) {
+      setSuccessMsg('Draft saved successfully!');
+    } catch (err: any) {
       console.error('Error saving draft:', err);
+      setErrorMsg(err.response?.data?.message || 'Failed to save draft');
     } finally {
       setSaving(false);
     }
@@ -74,46 +133,42 @@ export default function PostsPage() {
   const handlePublishPost = async (postId: string, isFromDraft: boolean = false) => {
     try {
       setPublishing(true);
+      setErrorMsg('');
+
       if (isFromDraft && activeDraft) {
-        // Validate post before publishing
         if (!draftContent || draftContent.trim().length === 0) {
-          alert('Post content cannot be empty. Please add content to your post.');
+          setErrorMsg('Post content cannot be empty');
+          setPublishing(false);
           return;
         }
         if (draftContent.length > 300) {
-          alert('Post exceeds Google API limit of 300 characters. Current: ' + draftContent.length + ' chars. Please shorten your post.');
+          setErrorMsg(`Post exceeds 300 character limit (Current: ${draftContent.length})`);
+          setPublishing(false);
           return;
         }
-        // Save first before publishing
         await apiService.updatePost(activeDraft.id, draftContent, activeDraft.mediaUrl);
       }
+
       await apiService.publishPost(postId);
       if (isFromDraft) {
         setActiveDraft(null);
         setDraftContent('');
       }
       await fetchPosts();
-      alert('✓ Post published successfully to Google Business Profile!');
+      setSuccessMsg('✅ Post published to Google Business Profile!');
+      setTabActive('history');
     } catch (err: any) {
       console.error('Error publishing post:', err);
-      const errorData = err.response?.data;
-      const errorMsg = typeof errorData === 'object' ? errorData?.message : errorData;
       const statusCode = err.response?.status;
+      let message = 'Failed to publish post';
 
-      let userMessage = 'Error publishing post';
-      if (statusCode === 400) {
-        userMessage = `Invalid post data:\n${errorMsg || 'Please check post content and try again'}`;
-      } else if (statusCode === 401) {
-        userMessage = 'Authentication failed. Please reconnect your Google Business Profile.';
-      } else if (statusCode === 403) {
-        userMessage = 'Access denied. You may not have permission to publish posts for this location.';
-      } else if (statusCode === 500) {
-        userMessage = 'Server error. Please try again later.';
-      } else {
-        userMessage = errorMsg ? `Error: ${errorMsg}` : err.message || 'Failed to publish post';
-      }
+      if (statusCode === 400) message = 'Invalid post content. Please check and try again.';
+      else if (statusCode === 401) message = 'Authentication failed. Please reconnect your account.';
+      else if (statusCode === 403) message = 'You don\'t have permission to publish this post.';
+      else if (statusCode === 500) message = 'Server error. Please try again later.';
+      else message = err.response?.data?.message || message;
 
-      alert(userMessage);
+      setErrorMsg(message);
     } finally {
       setPublishing(false);
     }
@@ -121,10 +176,10 @@ export default function PostsPage() {
 
   const handleLocalUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!selectedLocation || !file || !activeDraft) return;
+    if (!file || !activeDraft) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert("File size exceeds 2MB limit. Please choose a smaller photo.");
+      setErrorMsg('Image size exceeds 2MB limit');
       return;
     }
 
@@ -132,6 +187,7 @@ export default function PostsPage() {
     reader.onloadend = () => {
       if (typeof reader.result === 'string') {
         setActiveDraft({ ...activeDraft, mediaUrl: reader.result });
+        setErrorMsg('');
       }
     };
     reader.readAsDataURL(file);
@@ -139,12 +195,12 @@ export default function PostsPage() {
 
   const handleAiImageGeneration = () => {
     if (!selectedLocation || !activeDraft) return;
-    const topicText = topic || activeDraft.topic || 'promotions';
+    const topicText = topic || activeDraft.topic || 'business';
     const bizCategory = selectedLocation.category || 'local business';
     const randomSeed = Math.floor(Math.random() * 1000000);
-    
+
     const promptText = encodeURIComponent(
-      `commercial high-resolution product showcase photo for a ${bizCategory} business, featuring topic: ${topicText}, professional photography, cinematic lighting, 4k`
+      `professional high-resolution photo for ${bizCategory} business, topic: ${topicText}, modern, cinematic lighting, premium quality, 4k`
     );
     const generatedUrl = `https://image.pollinations.ai/prompt/${promptText}?width=600&height=400&nologo=true&seed=${randomSeed}`;
     setActiveDraft({ ...activeDraft, mediaUrl: generatedUrl });
@@ -152,110 +208,147 @@ export default function PostsPage() {
 
   if (!selectedLocation) {
     return (
-      <div className="h-[60vh] flex flex-col items-center justify-center text-muted-foreground">
-        <AlertCircle className="h-8 w-8 text-primary mb-2" />
-        <p>Please select a business location first.</p>
+      <div className="h-[60vh] flex flex-col items-center justify-center">
+        <div className="text-center space-y-3">
+          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto" />
+          <p className="text-lg font-semibold">No Location Selected</p>
+          <p className="text-sm text-muted-foreground">Please select a business location to create posts.</p>
+        </div>
       </div>
     );
   }
 
-  const postTypes = [
-    { label: 'Weekly Update 📅', value: 'WEEKLY', desc: 'Promote customer trust with consistent weekly updates.' },
-    { label: 'Festival Greetings 🎉', value: 'FESTIVAL', desc: 'Greet local customers for holidays or local events.' },
-    { label: 'Promotional Offer 🔥', value: 'PROMOTION', desc: 'Drive conversion by sharing active codes or services sales.' },
-    { label: 'Product Showcase ✨', value: 'PRODUCT', desc: 'Highlight a specific menu item, catalog listing, or service.' },
-  ];
+  const currentTemplate = postTemplates.find(t => t.value === postType);
+  const publishedCount = posts.filter(p => p.status === 'PUBLISHED').length;
+  const draftCount = posts.filter(p => p.status === 'DRAFT').length;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
-      {/* Page Header */}
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">GMB Posts Builder</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Draft weekly updates, promotions, and holiday greeting posts that keep customers engaged.
-        </p>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-cyan-500/10">
+            <Sparkles className="h-6 w-6 text-blue-500" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black">Posts Builder</h1>
+            <p className="text-sm text-muted-foreground">Create engaging posts that drive customer engagement</p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Generator Form */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-sm">
-            <h3 className="text-base font-black mb-4 flex items-center gap-2">
-              <Sparkles className="h-4.5 w-4.5 text-primary" /> Create Campaign
-            </h3>
-            
-            <form onSubmit={handleGeneratePost} className="space-y-4">
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
-                  Campaign Type
-                </label>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20 rounded-xl p-4">
+          <div className="text-2xl font-black text-blue-600">{posts.length}</div>
+          <div className="text-xs text-muted-foreground mt-1">Total Campaigns</div>
+        </div>
+        <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-500/20 rounded-xl p-4">
+          <div className="text-2xl font-black text-green-600">{publishedCount}</div>
+          <div className="text-xs text-muted-foreground mt-1">Published</div>
+        </div>
+        <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-500/20 rounded-xl p-4">
+          <div className="text-2xl font-black text-orange-600">{draftCount}</div>
+          <div className="text-xs text-muted-foreground mt-1">Drafts</div>
+        </div>
+        <div className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20 rounded-xl p-4">
+          <div className="text-2xl font-black text-purple-600">{selectedLocation.name.split(' ').length}</div>
+          <div className="text-xs text-muted-foreground mt-1">Location</div>
+        </div>
+      </div>
+
+      {/* Messages */}
+      {errorMsg && (
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 text-sm font-medium flex items-start gap-2">
+          <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+      {successMsg && (
+        <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-600 text-sm font-medium flex items-start gap-2">
+          <Check className="h-5 w-5 mt-0.5 flex-shrink-0" />
+          <span>{successMsg}</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Campaign Creator */}
+        <div className="lg:col-span-1">
+          <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 dark:from-slate-800 dark:to-slate-900 border border-slate-700/50 rounded-2xl p-6 shadow-xl sticky top-4">
+            <h2 className="text-lg font-black mb-5 flex items-center gap-2">
+              <Zap className="h-5 w-5 text-amber-400" />
+              New Campaign
+            </h2>
+
+            <form onSubmit={handleGeneratePost} className="space-y-5">
+              {/* Template Selection */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Campaign Type</label>
                 <div className="space-y-2">
-                  {postTypes.map((type) => (
-                    <label
-                      key={type.value}
-                      className={`flex items-start gap-3 p-3 rounded-xl border text-xs cursor-pointer transition-all ${
-                        postType === type.value 
-                          ? 'bg-primary/5 border-primary text-foreground' 
-                          : 'bg-card border-border hover:bg-secondary text-muted-foreground'
+                  {postTemplates.map((template) => (
+                    <button
+                      key={template.value}
+                      type="button"
+                      onClick={() => setPostType(template.value)}
+                      className={`w-full p-3 rounded-xl border transition-all duration-200 text-left ${
+                        postType === template.value
+                          ? `bg-gradient-to-r ${template.color} text-white border-transparent shadow-lg`
+                          : 'bg-slate-800/50 border-slate-700/50 hover:border-slate-600/50 text-slate-300'
                       }`}
                     >
-                      <input
-                        type="radio"
-                        name="postType"
-                        value={type.value}
-                        checked={postType === type.value}
-                        onChange={() => setPostType(type.value)}
-                        className="mt-0.5 text-primary focus:ring-primary focus:outline-none"
-                      />
-                      <div>
-                        <span className="font-bold text-foreground block">{type.label}</span>
-                        <span className="text-[10px] leading-relaxed block mt-0.5">{type.desc}</span>
+                      <div className="flex items-start gap-3">
+                        <span className="text-lg mt-0.5">{template.emoji}</span>
+                        <div>
+                          <div className="font-bold text-sm">{template.name}</div>
+                          <div className="text-xs opacity-80 mt-0.5">{template.description}</div>
+                        </div>
                       </div>
-                    </label>
+                    </button>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
-                  Notes & Details (Optional)
-                </label>
+              {/* Details Input */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Add Details</label>
                 <textarea
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  rows={3}
-                  placeholder="e.g., Lasagna is 15% off this weekend; we close early at 8 PM on Easter Sunday"
-                  className="w-full bg-card border border-border text-xs rounded-xl p-3 focus:ring-1 focus:ring-primary focus:outline-none"
+                  placeholder={`Example: ${currentTemplate?.example || 'Add specific details for your post...'}`}
+                  rows={4}
+                  className="w-full bg-slate-800/30 border border-slate-700/50 text-slate-100 text-sm rounded-xl p-3 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 focus:outline-none resize-none"
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-secondary/20 rounded-xl border border-border">
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-foreground">Attach Suggested Image</span>
-                  <span className="text-[10px] text-muted-foreground mt-0.5">Include a high-quality relevant category photo.</span>
-                </div>
+              {/* Image Option */}
+              <label className="flex items-center gap-3 p-3 bg-slate-800/30 border border-slate-700/50 rounded-xl cursor-pointer hover:border-slate-600/50 transition-all">
                 <input
                   type="checkbox"
                   checked={includeImage}
                   onChange={(e) => setIncludeImage(e.target.checked)}
-                  className="rounded border-border text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                  className="h-4 w-4 rounded border-slate-600 bg-slate-800 accent-blue-500"
                 />
-              </div>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold text-slate-200">Add Featured Image</div>
+                  <div className="text-xs text-slate-400">Include a professional photo with your post</div>
+                </div>
+              </label>
 
+              {/* Generate Button */}
               <button
                 type="submit"
                 disabled={generating}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all shadow-md shadow-primary/25"
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:from-slate-700 disabled:to-slate-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 disabled:shadow-none"
               >
                 {generating ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating copy...
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Creating Magic...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4" />
-                    Draft Post with Claude
+                    <Sparkles className="h-5 w-5" />
+                    Generate with AI
                   </>
                 )}
               </button>
@@ -263,199 +356,214 @@ export default function PostsPage() {
           </div>
         </div>
 
-        {/* Right Column: Active Draft & History */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Active Draft Review Panel */}
+        {/* Right: Draft & History */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Draft Editor */}
           {activeDraft && (
-            <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-md border-primary/30 animate-in slide-in-from-right duration-300">
-              <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
-                <span className="text-xs font-bold text-primary flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4" /> Edit Generated Post
-                </span>
-                <span className="text-[10px] font-black uppercase bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                  {activeDraft.postType}
+            <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 dark:from-slate-800 dark:to-slate-900 border border-slate-700/50 rounded-2xl p-6 shadow-xl animate-in slide-in-from-top duration-300">
+              <div className="mb-4 pb-4 border-b border-slate-700/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></div>
+                  <span className="font-bold text-slate-200">Draft Editor</span>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  postType === 'PROMOTION' ? 'bg-red-500/20 text-red-300' :
+                  postType === 'FESTIVAL' ? 'bg-purple-500/20 text-purple-300' :
+                  postType === 'PRODUCT' ? 'bg-yellow-500/20 text-yellow-300' :
+                  'bg-blue-500/20 text-blue-300'
+                }`}>
+                  {postType}
                 </span>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1.5 flex items-center justify-between">
-                    <span>Post Copy Description</span>
-                    <span className={`text-[10px] font-semibold ${draftContent.length > 300 ? 'text-red-500' : draftContent.length > 250 ? 'text-yellow-500' : 'text-green-600'}`}>
-                      {draftContent.length}/300 chars
-                    </span>
-                  </label>
-                  <textarea
-                    value={draftContent}
-                    onChange={(e) => setDraftContent(e.target.value)}
-                    rows={6}
-                    className={`w-full bg-card border rounded-xl p-3 text-sm focus:ring-1 focus:outline-none leading-relaxed ${draftContent.length > 300 ? 'border-red-500 focus:ring-red-500' : 'border-border focus:ring-primary'}`}
-                  />
-                  {draftContent.length > 300 && (
-                    <div className="mt-2 flex items-center gap-2 text-red-500">
-                      <AlertCircle className="h-4 w-4" />
-                      <span className="text-xs font-semibold">Exceeds Google API limit (300 chars max)</span>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1.5 flex items-center justify-between">
-                    <span>Campaign Media URL (Optional)</span>
-                    {activeDraft.mediaUrl && (
-                      <button
-                        onClick={() => setActiveDraft({ ...activeDraft, mediaUrl: '' })}
-                        className="text-[10px] text-red-500 hover:underline"
-                      >
-                        Remove Image
-                      </button>
-                    )}
-                  </label>
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={activeDraft.mediaUrl || ''}
-                      onChange={(e) => setActiveDraft({ ...activeDraft, mediaUrl: e.target.value })}
-                      placeholder="https://images.unsplash.com/photo-..."
-                      className="w-full bg-card border border-border text-xs rounded-xl p-2.5 focus:ring-1 focus:ring-primary focus:outline-none"
-                    />
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="file"
-                        id="local-media-upload"
-                        accept="image/*"
-                        onChange={handleLocalUpload}
-                        className="hidden"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => document.getElementById('local-media-upload')?.click()}
-                        className="flex items-center justify-center gap-1.5 py-2 px-3 border border-border hover:bg-secondary text-[10px] font-bold rounded-xl transition-all"
-                      >
-                        📁 Upload Photo
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleAiImageGeneration}
-                        className="flex items-center justify-center gap-1.5 py-2 px-3 bg-violet-600/20 border border-violet-500/30 text-violet-300 hover:bg-violet-600/30 text-[10px] font-bold rounded-xl transition-all"
-                      >
-                        🤖 Generate AI Image
-                      </button>
+              <div className="space-y-5">
+                {/* Content Editor */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Post Content</label>
+                    <div className={`text-xs font-bold ${
+                      draftContent.length > 300 ? 'text-red-400' :
+                      draftContent.length > 250 ? 'text-yellow-400' :
+                      'text-green-400'
+                    }`}>
+                      {draftContent.length}/300 characters
                     </div>
                   </div>
-
-                  {activeDraft.mediaUrl && (
-                    <div className="mt-3 rounded-xl overflow-hidden border border-border max-h-[160px] flex items-center justify-center bg-secondary/10">
-                      <img
-                        src={activeDraft.mediaUrl}
-                        alt="Campaign Preview"
-                        className="max-h-[160px] w-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600';
-                        }}
-                      />
+                  <textarea
+                    value={draftContent}
+                    onChange={(e) => setDraftContent(e.target.value.slice(0, 300))}
+                    rows={5}
+                    className={`w-full bg-slate-800/30 border rounded-xl p-4 text-slate-100 text-sm focus:outline-none resize-none ${
+                      draftContent.length > 300
+                        ? 'border-red-500/50 focus:ring-1 focus:ring-red-500/30'
+                        : 'border-slate-700/50 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30'
+                    }`}
+                  />
+                  {draftContent.length > 300 && (
+                    <div className="flex items-center gap-2 text-red-400 text-xs font-semibold">
+                      <AlertCircle className="h-4 w-4" />
+                      Post exceeds Google limit (reduce by {draftContent.length - 300} chars)
                     </div>
                   )}
                 </div>
+
+                {/* Image Section */}
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Featured Image</label>
+                  <div className="space-y-2">
+                    {activeDraft.mediaUrl ? (
+                      <div className="space-y-2">
+                        <div className="relative rounded-xl overflow-hidden border border-slate-700/50 bg-slate-800/30 h-40">
+                          <img
+                            src={activeDraft.mediaUrl}
+                            alt="Campaign preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.currentTarget).src = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600';
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setActiveDraft({ ...activeDraft, mediaUrl: '' })}
+                            className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4 text-white" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="file"
+                          id="media-upload"
+                          accept="image/*"
+                          onChange={handleLocalUpload}
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('media-upload')?.click()}
+                          className="p-3 border border-slate-700/50 hover:border-slate-600/50 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-bold text-slate-300"
+                        >
+                          <ImageIcon className="h-4 w-4" />
+                          Upload Photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleAiImageGeneration}
+                          className="p-3 bg-purple-500/20 border border-purple-500/30 hover:border-purple-500/50 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-bold text-purple-300"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          AI Image
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="flex gap-3 justify-end mt-5">
+              <div className="flex gap-3 mt-6 pt-4 border-t border-slate-700/50">
                 <button
                   onClick={handleSaveDraft}
                   disabled={saving}
-                  className="flex items-center gap-1.5 px-3 py-2 border border-border hover:bg-secondary text-xs font-bold rounded-xl transition-colors"
+                  className="flex-1 py-2.5 px-4 border border-slate-700/50 hover:border-slate-600/50 text-slate-200 font-bold rounded-xl transition-all text-sm"
                 >
-                  <Save className="h-4 w-4" />
-                  {saving ? 'Saving...' : 'Save Draft'}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Save Draft'}
                 </button>
                 <button
                   onClick={() => handlePublishPost(activeDraft.id, true)}
-                  disabled={publishing}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-colors shadow-md shadow-emerald-600/20"
+                  disabled={publishing || draftContent.length > 300 || !draftContent.trim()}
+                  className="flex-1 py-2.5 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-slate-700 disabled:to-slate-700 text-white font-bold rounded-xl transition-all text-sm flex items-center justify-center gap-2 shadow-lg shadow-green-500/25"
                 >
-                  <Send className="h-4 w-4" />
-                  {publishing ? 'Publishing...' : 'Publish to Google'}
+                  {publishing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Publish
+                    </>
+                  )}
                 </button>
               </div>
             </div>
           )}
 
-          {/* History */}
+          {/* Campaign History */}
           <div className="space-y-4">
-            <h3 className="text-base font-black flex items-center gap-2">
-              <Megaphone className="h-4.5 w-4.5 text-muted-foreground" /> Campaigns Logs
-            </h3>
+            <h3 className="text-lg font-black text-slate-200">Campaign History</h3>
 
             {loading ? (
-              <div className="h-32 flex items-center justify-center text-muted-foreground">
-                <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" /> Loading archives...
+              <div className="p-8 text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
               </div>
             ) : posts.length === 0 ? (
-              <div className="bg-card border border-border rounded-2xl p-8 text-center text-muted-foreground text-sm">
-                No past campaigns found. Create your first post using the form.
+              <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 dark:from-slate-800 dark:to-slate-900 border border-slate-700/50 rounded-2xl p-8 text-center">
+                <Target className="h-12 w-12 text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-300 font-semibold mb-1">No campaigns yet</p>
+                <p className="text-xs text-slate-500">Create your first campaign above to get started</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {posts.map((post) => {
                   const isPublished = post.status === 'PUBLISHED';
                   return (
-                    <div key={post.id} className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-3">
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-foreground capitalize">
-                            {post.postType.toLowerCase()} post
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">•</span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {new Date(post.createdAt).toLocaleDateString()}
-                          </span>
+                    <div
+                      key={post.id}
+                      className={`bg-gradient-to-br ${
+                        isPublished
+                          ? 'from-slate-800/50 to-slate-900/50'
+                          : 'from-amber-500/10 to-orange-500/10'
+                      } border ${
+                        isPublished
+                          ? 'border-slate-700/50'
+                          : 'border-amber-500/30'
+                      } rounded-xl p-4 space-y-3`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-slate-200 capitalize text-sm">{post.postType}</span>
+                            <span className="text-xs text-slate-500">•</span>
+                            <span className="text-xs text-slate-500">{new Date(post.createdAt).toLocaleDateString()}</span>
+                          </div>
+                          <p className="text-sm text-slate-300 leading-relaxed">{post.content}</p>
                         </div>
-
-                        <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          isPublished 
-                            ? 'bg-emerald-500/10 text-emerald-500' 
-                            : 'bg-slate-500/10 text-muted-foreground'
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ml-4 ${
+                          isPublished
+                            ? 'bg-green-500/20 text-green-300'
+                            : 'bg-amber-500/20 text-amber-300'
                         }`}>
-                          {isPublished ? (
-                            <>
-                              <Check className="h-3 w-3" /> Published
-                            </>
-                          ) : (
-                            <>
-                              <Clock className="h-3 w-3" /> Draft
-                            </>
-                          )}
+                          {isPublished ? '✓ Published' : '⏱ Draft'}
                         </span>
                       </div>
 
                       {post.mediaUrl && (
-                        <div className="rounded-xl overflow-hidden border border-border max-h-[220px]">
-                          <img 
-                            src={post.mediaUrl} 
-                            alt="Campaign Media" 
-                            className="w-full h-44 object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
+                        <div className="rounded-lg overflow-hidden border border-slate-700/50 h-32">
+                          <img
+                            src={post.mediaUrl}
+                            alt="Campaign"
+                            className="w-full h-full object-cover"
                           />
                         </div>
                       )}
 
-                      <p className="text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
-                        {post.content}
-                      </p>
-
                       {!isPublished && (
-                        <div className="flex justify-end border-t border-border pt-3">
+                        <div className="flex gap-2 pt-2 border-t border-slate-700/50">
                           <button
                             onClick={() => {
                               setActiveDraft(post);
                               setDraftContent(post.content);
                             }}
-                            className="flex items-center gap-1.5 text-xs text-primary font-bold hover:underline"
+                            className="flex-1 py-1.5 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors"
                           >
-                            <Edit3 className="h-3.5 w-3.5" /> Edit Draft
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handlePublishPost(post.id, false)}
+                            disabled={publishing}
+                            className="flex-1 py-1.5 text-xs font-bold bg-green-500/20 text-green-300 hover:bg-green-500/30 rounded transition-all"
+                          >
+                            {publishing ? 'Publishing...' : 'Publish'}
                           </button>
                         </div>
                       )}
