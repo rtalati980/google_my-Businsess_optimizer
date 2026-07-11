@@ -1,12 +1,27 @@
-# Environment variables
+# Environment variables - NEVER commit these
 .env
 .env.local
+.env.production
+.env.staging
 .env.*.local
+.env.*.production
+.env.*.staging
+
+# Secrets
+*.pem
+*.key
+*.pub
+secrets/
+.ssh/
 
 # Build artifacts
 backend/target/
+backend/build/
+frontend/.next/
+frontend/out/
+frontend/dist/
+frontend/build/
 node_modules/
-.next/
 dist/
 build/
 
@@ -17,12 +32,53 @@ build/
 *.swo
 *~
 .DS_Store
+*.sublime-project
+*.sublime-workspace
+.env.local.php
+*.code-workspace
 
-# Logs
+# Logs and monitoring
 *.log
 logs/
 npm-debug.log*
+npm-error.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+backend.log
+frontend.log
 
 # OS
 Thumbs.db
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Test artifacts
+test-results/
+junit/
+
+# Docker
+docker-compose.override.yml
+
+# Backups
+*.backup
+*.bak
+backups/
+*.sql.gz
+
+# Dependencies lock files (optional, uncomment if needed)
+# package-lock.json
+# pom.xml.backup
+
+# Temporary files
+*.tmp
+tmp/
+temp/
+.env.backup
+.env.*.backup
