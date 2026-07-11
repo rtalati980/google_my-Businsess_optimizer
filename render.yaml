@@ -1,0 +1,65 @@
+services:
+  # Frontend Service (Next.js)
+  - type: web
+    name: gmb-frontend
+    runtime: node
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: gmb-backend
+          property: url
+    publicPath: frontend
+    routes:
+      - path: /
+        destination: frontend
+      - path: /api/*
+        destination: gmb-backend
+
+  # Backend Service (Spring Boot)
+  - type: web
+    name: gmb-backend
+    runtime: java
+    buildCommand: cd backend && mvn clean package -DskipTests
+    startCommand: cd backend && java -jar target/manager-*.jar
+    plan: standard
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: PORT
+        value: 8080
+      - key: MONGODB_URI
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_API_MODE
+        value: PRODUCTION
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: gmb-frontend
+          property: url
+      - key: NEXT_PUBLIC_API_URL
+        value: auto
+
+# Databases
+databases:
+  - name: gmb-mongodb
+    plan: standard
+    ipAllowList: []
+
+# Environment variables that need to be set in Render dashboard
+envVariableDefaults:
+  SPRING_PROFILES_ACTIVE: prod
+  GOOGLE_API_MODE: PRODUCTION
+  NODE_ENV: production
