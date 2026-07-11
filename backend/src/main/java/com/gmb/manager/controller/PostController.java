@@ -48,19 +48,32 @@ public class PostController {
             @PathVariable String locationId,
             @RequestBody Map<String, Object> request
     ) {
-        Location location = locationRepository.findById(locationId).orElse(null);
-        if (location == null) return ResponseEntity.notFound().build();
-        if (!isOwner(location, user)) return ResponseEntity.status(403).body("Access Denied");
+        if (user == null) {
+            return ResponseEntity.status(401).body("Authentication required");
+        }
 
-        String postType = request.getOrDefault("postType", "WEEKLY").toString();
-        String topic = request.containsKey("topic") && request.get("topic") != null ? request.get("topic").toString() : null;
-        boolean includeImage = request.containsKey("includeImage") && Boolean.parseBoolean(request.get("includeImage").toString());
+        Location location = locationRepository.findById(locationId).orElse(null);
+        if (location == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (!isOwner(location, user)) {
+            return ResponseEntity.status(403).body("Access Denied");
+        }
 
         try {
+            String postType = request.getOrDefault("postType", "WEEKLY").toString();
+            String topic = request.containsKey("topic") && request.get("topic") != null ?
+                request.get("topic").toString() : null;
+            boolean includeImage = request.containsKey("includeImage") &&
+                Boolean.parseBoolean(request.get("includeImage").toString());
+
             Post post = postService.generatePost(locationId, postType, topic, includeImage);
             return ResponseEntity.ok(post);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Error generating post: " + e.getMessage()));
         }
     }
 
@@ -70,16 +83,31 @@ public class PostController {
             @PathVariable String postId,
             @RequestBody Map<String, String> request
     ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body("Authentication required");
+        }
+
         String content = request.get("content");
         String mediaUrl = request.get("mediaUrl");
+
         if (content == null || content.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("message", "Content cannot be empty"));
         }
+
         try {
             Post post = postService.updatePost(postId, content, mediaUrl);
+
+            // Verify ownership
+            Location location = locationRepository.findById(post.getLocationId()).orElse(null);
+            if (location == null || !isOwner(location, user)) {
+                return ResponseEntity.status(403).body("Access Denied");
+            }
+
             return ResponseEntity.ok(post);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Error updating post: " + e.getMessage()));
         }
     }
 
@@ -88,11 +116,24 @@ public class PostController {
             @AuthenticationPrincipal User user,
             @PathVariable String postId
     ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body("Authentication required");
+        }
+
         try {
             Post post = postService.publishPost(postId);
+
+            // Verify ownership
+            Location location = locationRepository.findById(post.getLocationId()).orElse(null);
+            if (location == null || !isOwner(location, user)) {
+                return ResponseEntity.status(403).body("Access Denied");
+            }
+
             return ResponseEntity.ok(post);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Error publishing post: " + e.getMessage()));
         }
     }
 
@@ -102,19 +143,32 @@ public class PostController {
             @PathVariable String locationId,
             @RequestBody Map<String, Object> request
     ) {
-        Location location = locationRepository.findById(locationId).orElse(null);
-        if (location == null) return ResponseEntity.notFound().build();
-        if (!isOwner(location, user)) return ResponseEntity.status(403).body("Access Denied");
+        if (user == null) {
+            return ResponseEntity.status(401).body("Authentication required");
+        }
 
-        String postType = request.getOrDefault("postType", "WEEKLY").toString();
-        String topic = request.containsKey("topic") && request.get("topic") != null ? request.get("topic").toString() : null;
-        boolean includeImage = request.containsKey("includeImage") && Boolean.parseBoolean(request.get("includeImage").toString());
+        Location location = locationRepository.findById(locationId).orElse(null);
+        if (location == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (!isOwner(location, user)) {
+            return ResponseEntity.status(403).body("Access Denied");
+        }
 
         try {
+            String postType = request.getOrDefault("postType", "WEEKLY").toString();
+            String topic = request.containsKey("topic") && request.get("topic") != null ?
+                request.get("topic").toString() : null;
+            boolean includeImage = request.containsKey("includeImage") &&
+                Boolean.parseBoolean(request.get("includeImage").toString());
+
             Map<String, Object> result = postService.generateOptimizedPost(locationId, postType, topic, includeImage);
             return ResponseEntity.ok(result);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Error generating optimized post: " + e.getMessage()));
         }
     }
 
@@ -123,10 +177,16 @@ public class PostController {
             @AuthenticationPrincipal User user,
             @PathVariable String postId
     ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body("Authentication required");
+        }
+
         try {
             return ResponseEntity.ok(postService.getSeoMetrics(postId));
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Error retrieving SEO metrics: " + e.getMessage()));
         }
     }
 }

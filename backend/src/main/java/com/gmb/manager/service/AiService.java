@@ -15,74 +15,75 @@ import java.util.*;
 @Slf4j
 public class AiService {
 
-    @Value("${app.gemini.api-key:mock-key}")
+    @Value("${app.anthropic.api-key:sk-ant-mock-key}")
     private String apiKey;
 
-    @Value("${app.gemini.api-url:https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent}")
-    private String apiUrl;
+    @Value("${app.anthropic.api-url:https://api.anthropic.com/v1}")
+    private String apiBaseUrl;
+
+    @Value("${app.anthropic.model:claude-3-5-sonnet-20241022}")
+    private String model;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private static final int MAX_TOKENS = 2048;
+
     /**
-     * Generates content using Google Gemini API. If the API key is empty/mock or errors occur,
+     * Generates content using Anthropic Claude API. If the API key is empty/mock or errors occur,
      * falls back to realistic mock content.
      */
     public String generateContent(String systemInstruction, String userPrompt) {
-        if (apiKey == null || apiKey.equals("mock-key") || apiKey.trim().isEmpty()) {
-            log.info("Using simulation mode for AI generation (no valid Gemini API key configured)");
+        if (apiKey == null || apiKey.startsWith("sk-ant-mock") || apiKey.trim().isEmpty()) {
+            log.info("Using simulation mode for AI generation (no valid Anthropic API key configured)");
             return simulateResponse(systemInstruction, userPrompt);
         }
 
         try {
-            // Gemini uses API key as a query parameter
-            String url = apiUrl + "?key=" + apiKey;
+            String url = apiBaseUrl + "/messages";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("x-api-key", apiKey);
+            headers.set("anthropic-version", "2023-06-01");
 
-            // Build Gemini request body
+            // Build Anthropic Messages API request body
             Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", model);
+            requestBody.put("max_tokens", MAX_TOKENS);
 
             // Add system instruction if provided
             if (systemInstruction != null && !systemInstruction.trim().isEmpty()) {
-                Map<String, Object> systemPart = new HashMap<>();
-                systemPart.put("parts", Collections.singletonList(
-                        Collections.singletonMap("text", systemInstruction)
-                ));
-                requestBody.put("system_instruction", systemPart);
+                requestBody.put("system", systemInstruction);
             }
 
             // Add user message
-            Map<String, Object> userMessage = new HashMap<>();
-            userMessage.put("role", "user");
-            userMessage.put("parts", Collections.singletonList(
-                    Collections.singletonMap("text", userPrompt)
-            ));
-            requestBody.put("contents", Collections.singletonList(userMessage));
-
-            // Add generation config
-            Map<String, Object> generationConfig = new HashMap<>();
-            generationConfig.put("maxOutputTokens", 2048);
-            requestBody.put("generationConfig", generationConfig);
+            List<Map<String, String>> messages = new ArrayList<>();
+            Map<String, String> message = new HashMap<>();
+            message.put("role", "user");
+            message.put("content", userPrompt);
+            messages.add(message);
+            requestBody.put("messages", messages);
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
+            log.debug("Calling Anthropic Claude API with model: {}", model);
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 JsonNode root = objectMapper.readTree(response.getBody());
-                JsonNode candidates = root.path("candidates");
-                if (candidates.isArray() && !candidates.isEmpty()) {
-                    JsonNode parts = candidates.get(0).path("content").path("parts");
-                    if (parts.isArray() && !parts.isEmpty()) {
-                        return parts.get(0).path("text").asText();
+                JsonNode content = root.path("content");
+                if (content.isArray() && !content.isEmpty()) {
+                    String text = content.get(0).path("text").asText();
+                    if (!text.isEmpty()) {
+                        log.debug("Successfully generated content from Anthropic Claude");
+                        return text;
                     }
                 }
             }
-            throw new RuntimeException("Unexpected response format from Gemini API");
+            throw new RuntimeException("Unexpected response format from Anthropic API");
         } catch (Exception e) {
-            log.error("Error calling Gemini API: {}. Falling back to simulated response.", e.getMessage());
+            log.error("Error calling Anthropic Claude API: {}. Falling back to simulated response.", e.getMessage(), e);
             return simulateResponse(systemInstruction, userPrompt);
         }
     }

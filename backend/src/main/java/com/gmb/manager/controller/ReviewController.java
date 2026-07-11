@@ -91,12 +91,34 @@ public class ReviewController {
             @PathVariable String reviewId,
             @RequestBody Map<String, String> request
     ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body("Authentication required");
+        }
+
         String tone = request.getOrDefault("tone", "professional");
+
+        // Validate tone
+        if (tone == null || tone.trim().isEmpty()) {
+            tone = "professional";
+        }
+
         try {
+            Review review = reviewRepository.findById(reviewId).orElse(null);
+            if (review == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Location location = locationRepository.findById(review.getLocationId()).orElse(null);
+            if (location == null || !isOwner(location, user)) {
+                return ResponseEntity.status(403).body("Access Denied");
+            }
+
             ReviewReply reply = reviewService.generateAiReply(reviewId, tone);
             return ResponseEntity.ok(reply);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("message", "Error generating reply: " + e.getMessage()));
         }
     }
 
@@ -105,11 +127,34 @@ public class ReviewController {
             @AuthenticationPrincipal User user,
             @PathVariable String replyId
     ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body("Authentication required");
+        }
+
         try {
-            ReviewReply reply = reviewService.publishReply(replyId);
+            ReviewReply reply = reviewService.getReplyForReview(replyId).orElse(null);
+            if (reply == null) {
+                // Try to get by reply ID directly
+                reply = reviewService.publishReply(replyId);
+            } else {
+                Review review = reviewRepository.findById(reply.getReviewId()).orElse(null);
+                if (review == null) {
+                    return ResponseEntity.notFound().build();
+                }
+
+                Location location = locationRepository.findById(review.getLocationId()).orElse(null);
+                if (location == null || !isOwner(location, user)) {
+                    return ResponseEntity.status(403).body("Access Denied");
+                }
+
+                reply = reviewService.publishReply(replyId);
+            }
+
             return ResponseEntity.ok(reply);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("message", "Error publishing reply: " + e.getMessage()));
         }
     }
 
@@ -118,19 +163,39 @@ public class ReviewController {
             @AuthenticationPrincipal User user,
             @RequestBody Map<String, String> request
     ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body("Authentication required");
+        }
+
         String reviewId = request.get("reviewId");
         String replyText = request.get("replyText");
         String tone = request.getOrDefault("tone", "friendly");
 
-        if (reviewId == null || replyText == null) {
-            return ResponseEntity.badRequest().body("Missing reviewId or replyText");
+        if (reviewId == null || reviewId.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Missing reviewId"));
+        }
+
+        if (replyText == null || replyText.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Missing replyText"));
         }
 
         try {
+            Review review = reviewRepository.findById(reviewId).orElse(null);
+            if (review == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Location location = locationRepository.findById(review.getLocationId()).orElse(null);
+            if (location == null || !isOwner(location, user)) {
+                return ResponseEntity.status(403).body("Access Denied");
+            }
+
             ReviewReply reply = reviewService.saveReplyDraft(reviewId, replyText, tone);
             return ResponseEntity.ok(reply);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("message", "Error saving reply: " + e.getMessage()));
         }
     }
 }
