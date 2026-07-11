@@ -95,32 +95,11 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
   },
 
-  // Webpack optimizations
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: "all",
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            vendor: {
-              filename: "chunks/vendor.js",
-              test: /node_modules/,
-              priority: 10,
-              reuseExistingChunk: true,
-            },
-            common: {
-              minChunks: 2,
-              priority: 5,
-              reuseExistingChunk: true,
-            },
-          },
-        },
-      };
-    }
-    return config;
+  // Turbopack configuration for Next.js 16
+  turbopack: {
+    resolveAlias: {
+      "@": "./",
+    },
   },
 };
 
