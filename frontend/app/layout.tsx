@@ -15,7 +15,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://optimizer-profile.netlify.app"),
   title: {
     default: "GMB AI Manager — AI-Powered Google Business Profile Manager",
     template: "%s | GMB AI Manager",

@@ -27,10 +27,10 @@ export function middleware(request: NextRequest) {
     'geolocation=(), microphone=(), camera=(), payment=()'
   );
 
-  // Content Security Policy - Strict in production
+  // Content Security Policy - Allow Next.js hydration in all environments
   const cspHeader = isDev
-    ? "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:;"
-    : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' data:;";
+    ? "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data: blob:; font-src 'self' https: data:; connect-src 'self' https: ws: wss:;"
+    : "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data: blob:; font-src 'self' https: data:; connect-src 'self' https:; frame-ancestors 'self';";
 
   response.headers.set('Content-Security-Policy', cspHeader);
 
