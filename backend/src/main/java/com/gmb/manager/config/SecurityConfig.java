@@ -40,10 +40,8 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
             .headers(headers -> headers
-                .contentSecurityPolicy(csp -> csp.disable())
                 .frameOptions(frame -> frame.deny())
-                .xssProtection(xss -> xss.and().block(true))
-                .contentTypeOptions(cto -> cto.and())
+                .contentTypeOptions(cto -> {})
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login", "/api/auth/callback", "/api/auth/mock-login", "/login/**", "/oauth2/**", "/api/public/**").permitAll()

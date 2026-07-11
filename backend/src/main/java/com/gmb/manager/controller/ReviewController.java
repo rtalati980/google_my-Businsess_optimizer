@@ -3,6 +3,7 @@ package com.gmb.manager.controller;
 import com.gmb.manager.entity.*;
 import com.gmb.manager.repository.BusinessRepository;
 import com.gmb.manager.repository.LocationRepository;
+import com.gmb.manager.repository.ReviewRepository;
 import com.gmb.manager.service.GmbService;
 import com.gmb.manager.service.ReviewService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class ReviewController {
     private final GmbService gmbService;
     private final LocationRepository locationRepository;
     private final BusinessRepository businessRepository;
+    private final ReviewRepository reviewRepository;
 
     private boolean isOwner(Location location, User user) {
         Business biz = businessRepository.findById(location.getBusinessId()).orElse(null);
