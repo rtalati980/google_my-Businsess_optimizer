@@ -11,7 +11,7 @@ import Autoplay from 'embla-carousel-autoplay';
 import {
   Sparkles, Star, MessageSquare, Megaphone, TrendingUp,
   BarChart2, Shield, CheckCircle2, ArrowRight, Globe,
-  ChevronRight, Zap, MapPin, Phone, Menu, X
+  ChevronRight, Zap, MapPin, Phone, Menu, X, Rocket
 } from 'lucide-react';
 
 // ─── VARIANTS ────────────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 const features = [
-  { icon: MessageSquare, color: '#7c3aed', bg: '#f5f3ff', title: 'AI Review Replies', description: 'Claude AI instantly writes perfect, tone-matched responses to every customer review — Professional, Friendly, Thankful, and more.' },
+  { icon: MessageSquare, color: '#7c3aed', bg: '#f5f3ff', title: 'AI Review Replies', description: 'Gemini AI instantly writes perfect, tone-matched responses to every customer review — Professional, Friendly, Thankful, and more.' },
   { icon: Megaphone, color: '#0284c7', bg: '#f0f9ff', title: 'GMB Post Scheduler', description: 'Auto-schedule weekly posts, offers & announcements to keep your Google Business Profile fresh and actively ranked.' },
   { icon: TrendingUp, color: '#16a34a', bg: '#f0fdf4', title: 'AI SEO Auditor', description: 'Get a 0–100 SEO health score with actionable keyword suggestions and profile improvements to rank higher on Google Maps.' },
   { icon: BarChart2, color: '#d97706', bg: '#fffbeb', title: 'Weekly AI Reports', description: 'Every week, get a full performance report — sentiment analysis, top keywords, content ideas, and competitor comparison.' },
@@ -69,7 +69,7 @@ const pricingPlans = [
 
 const faqs = [
   { q: 'Do I need a verified Google Business Profile?', a: 'Yes, you need a verified GMB profile. However, you can start testing with our Sandbox Mode instantly — no Google account connection needed.' },
-  { q: 'How does the AI generate review replies?', a: "We use Anthropic's Claude AI model. It reads the reviewer's tone and your business type to craft perfectly tailored, human-sounding responses every time." },
+  { q: 'How does the AI generate review replies?', a: "We use Google's Gemini AI model. It reads the reviewer's tone and your business type to craft perfectly tailored, human-sounding responses every time." },
   { q: 'Will Google penalize AI-written replies?', a: 'No. Google has no policy against AI-assisted replies. Every reply is reviewed and published by you — it always looks and feels human.' },
   { q: 'How quickly will my Google Maps ranking improve?', a: 'Most businesses see measurable improvement in 3–6 weeks of consistent posting and responding to reviews with our tool.' },
   { q: 'Is my Google account data safe?', a: 'Absolutely. We use Google OAuth 2.0 (same as "Sign in with Google"). We never see or store your password. All tokens are encrypted.' },
@@ -167,10 +167,10 @@ export default function LandingPage() {
         className="fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-sm">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-xl bg-violet-600 flex items-center justify-center shadow-md shadow-violet-200">
-              <Sparkles className="h-4 w-4 text-white" />
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-500 flex items-center justify-center shadow-md shadow-violet-200">
+              <Rocket className="h-4 w-4 text-white" />
             </div>
-            <span className="font-black text-lg text-gray-900">GMB AI Manager</span>
+            <span className="font-extrabold text-lg text-gray-900 tracking-tight">BizLocalPilot <span className="text-violet-600 font-black">AI</span></span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-500">
@@ -231,9 +231,9 @@ export default function LandingPage() {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
                   className="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-100 text-violet-700 text-xs font-bold rounded-full mb-6 border border-violet-200">
                   <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2.5 }}>
-                    <Sparkles className="h-3.5 w-3.5" />
+                    <Rocket className="h-3.5 w-3.5 text-violet-600" />
                   </motion.div>
-                  Powered by Claude AI + Google Business Profile API
+                  Powered by Google Gemini AI + Business Profile API
                 </motion.div>
 
                 <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
@@ -252,7 +252,7 @@ export default function LandingPage() {
                 <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }}
                   className="text-lg text-gray-500 leading-relaxed mb-8 max-w-lg">
                   Auto-reply to reviews, schedule GMB posts, get SEO audits, and track competitors —
-                  all powered by <strong className="text-gray-700">Claude AI</strong>. Built for local shops, restaurants, clinics & salons across India.
+                  all powered by <strong className="text-gray-700">Google Gemini AI</strong>. Built for local shops, restaurants, clinics & salons across India.
                 </motion.p>
 
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
@@ -290,7 +290,7 @@ export default function LandingPage() {
                 transition={{ duration: 0.7, delay: 0.3 }}
                 className="relative">
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-violet-100 border border-gray-100">
-                  <Image src="/hero-dashboard.png" alt="GMB AI Manager Dashboard — AI review replies and SEO score"
+                  <Image src="/hero-dashboard.png" alt="BizLocalPilot AI Dashboard — AI review replies and SEO score"
                     width={680} height={430} className="w-full h-auto" priority />
                 </div>
                 {/* Floating badge */}
@@ -339,7 +339,7 @@ export default function LandingPage() {
             <motion.div variants={fadeUp}
               className="inline-flex items-center gap-2 bg-white/15 border border-white/30 text-white font-bold px-5 py-2.5 rounded-full text-base">
               <Zap className="h-5 w-5 text-yellow-300" />
-              GMB AI Manager fixes this automatically
+              BizLocalPilot AI fixes this automatically
             </motion.div>
           </Section>
         </section>
@@ -378,7 +378,7 @@ export default function LandingPage() {
                 <span className="text-xs font-bold text-violet-600 uppercase tracking-widest block mb-3">Feature Spotlight</span>
                 <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-5">Reply to Every Review in Seconds</h2>
                 <p className="text-gray-500 text-lg leading-relaxed mb-6">
-                  Claude AI reads the customer's review, understands the sentiment, and writes a
+                  Gemini AI reads the customer's review, understands the sentiment, and writes a
                   perfect response tailored to your business type. Just approve and publish.
                 </p>
                 <ul className="space-y-3 mb-8">
@@ -448,7 +448,7 @@ export default function LandingPage() {
                 </h2>
                 <p className="text-gray-500 text-lg leading-relaxed mb-6">
                   Whether you run a restaurant in Mumbai, a salon in Bangalore, or a medical clinic in Chennai —
-                  GMB AI Manager helps you show up when customers search for you locally.
+                  BizLocalPilot AI helps you show up when customers search for you locally.
                 </p>
                 <div className="grid grid-cols-2 gap-4 mb-8">
                   {[
@@ -505,7 +505,7 @@ export default function LandingPage() {
               <div className="hidden md:block absolute top-12 left-[calc(33%-1rem)] right-[calc(33%-1rem)] h-[2px] bg-gradient-to-r from-violet-200 via-violet-400 to-violet-200" />
               {[
                 { step: '1', icon: Globe, title: 'Connect Google', desc: 'Sign in with Gmail and link your Google Business Profile. Takes 60 seconds.', color: '#7c3aed', bg: '#f5f3ff' },
-                { step: '2', icon: Sparkles, title: 'AI Analyses Profile', desc: 'Claude scans your reviews, profile data, and competitors instantly.', color: '#0284c7', bg: '#f0f9ff' },
+                { step: '2', icon: Sparkles, title: 'AI Analyses Profile', desc: 'Gemini scans your reviews, profile data, and competitors instantly.', color: '#0284c7', bg: '#f0f9ff' },
                 { step: '3', icon: TrendingUp, title: 'Rank & Grow', desc: 'Approve AI replies, publish posts, watch your Maps ranking climb.', color: '#16a34a', bg: '#f0fdf4' },
               ].map((item, i) => (
                 <motion.div key={item.step} variants={fadeUp} custom={i} className="text-center relative">
@@ -628,12 +628,12 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
               <div className="flex items-center gap-2.5 mb-2">
-                <div className="h-7 w-7 rounded-lg bg-violet-600 flex items-center justify-center">
-                  <Sparkles className="h-4 w-4 text-white" />
+                <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-500 flex items-center justify-center">
+                  <Rocket className="h-4 w-4 text-white" />
                 </div>
-                <span className="font-black text-white">GMB AI Manager</span>
+                <span className="font-extrabold text-white tracking-tight">BizLocalPilot <span className="text-violet-500 font-black">AI</span></span>
               </div>
-              <p className="text-gray-400 text-xs max-w-xs">Helping local Indian businesses grow on Google Maps with Claude AI.</p>
+              <p className="text-gray-400 text-xs max-w-xs">Helping local Indian businesses grow on Google Maps with Gemini AI.</p>
             </div>
             <div className="flex gap-8 text-sm text-gray-400">
               {['features', 'pricing', 'faq'].map(id => (
@@ -641,7 +641,7 @@ export default function LandingPage() {
               ))}
               <Link href="/login" className="hover:text-white transition-colors">Dashboard</Link>
             </div>
-            <p className="text-xs text-gray-600">© {new Date().getFullYear()} GMB AI Manager · Made in India 🇮🇳</p>
+            <p className="text-xs text-gray-600">© {new Date().getFullYear()} BizLocalPilot AI · Made in India 🇮🇳</p>
           </div>
         </div>
       </footer>

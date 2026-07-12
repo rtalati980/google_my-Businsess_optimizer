@@ -6,7 +6,7 @@ import {
   Sparkles, LayoutDashboard, MessageSquare, Megaphone, 
   FileText, ShieldAlert, Settings, LogOut, Sun, Moon, 
   Menu, X, ChevronDown, Check, Loader2, MapPin, TrendingUp,
-  BarChart3
+  BarChart3, ClipboardCheck, Rocket
 } from 'lucide-react';
 import { apiService } from '@/lib/api';
 import { User, Business, Location } from '@/lib/types';
@@ -332,6 +332,7 @@ function DashboardWrapper({
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Profile Audit', href: '/dashboard/audit', icon: ClipboardCheck },
     { name: 'Reviews', href: '/dashboard/reviews', icon: MessageSquare },
     { name: 'Sentiment Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Posts Builder', href: '/dashboard/posts', icon: Megaphone },
@@ -360,12 +361,13 @@ function DashboardWrapper({
           <div className="flex flex-col flex-1 min-h-0">
             {/* Logo */}
             <div className="flex items-center gap-2.5 px-6 py-5 border-b border-border">
-              <div className="p-2 bg-primary/10 border border-primary/20 rounded-xl">
-                <Sparkles className="h-5 w-5 text-primary" />
+              <div className="p-2 gradient-bg rounded-xl shadow-lg shadow-primary/20">
+                <Rocket className="h-5 w-5 text-white" />
               </div>
-              <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-foreground/60 bg-clip-text text-transparent">
-                GMB AI Manager
-              </span>
+              <div className="flex flex-col">
+                <span className="font-extrabold text-base tracking-tight gradient-text">BizLocalPilot</span>
+                <span className="text-[9px] font-semibold text-muted-foreground tracking-wider uppercase">AI Platform</span>
+              </div>
             </div>
 
             {/* Nav links */}
@@ -481,8 +483,8 @@ function DashboardWrapper({
               <div className="relative flex flex-col w-72 bg-card border-r border-border h-full">
                 <div className="flex items-center justify-between px-6 py-5 border-b border-border">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    <span className="font-extrabold">GMB AI Manager</span>
+                    <Rocket className="h-5 w-5 text-primary" />
+                    <span className="font-extrabold gradient-text">BizLocalPilot AI</span>
                   </div>
                   <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-secondary rounded-lg">
                     <X className="h-5 w-5" />

@@ -123,29 +123,91 @@ public class PostService {
     }
 
     private String suggestBusinessSpecificImage(String category, String businessName) {
-        if (category == null) return "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600";
-        String catLower = category.toLowerCase();
+        if (category == null && businessName == null) {
+            return "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80";
+        }
+        String catLower = (category != null) ? category.toLowerCase() : "";
+        String nameLower = (businessName != null) ? businessName.toLowerCase() : "";
+        String combined = catLower + " " + nameLower;
 
-        // Business-type-specific images from Unsplash
-        if (catLower.contains("salon") || catLower.contains("hair") || catLower.contains("beauty") || catLower.contains("spa")) {
-            return "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&q=80"; // Salon/Beauty
-        } else if (catLower.contains("restaurant") || catLower.contains("cafe") || catLower.contains("food") || catLower.contains("dine")) {
+        // Software / IT / Tech / Digital
+        if (combined.contains("software") || combined.contains("tech") || combined.contains("code") ||
+            combined.contains("digital") || combined.contains("it ") || combined.contains("web") ||
+            combined.contains("app") || combined.contains("developer") || combined.contains("programming")) {
+            return "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&q=80"; // Code/Tech workspace
+        }
+        // Marketing / Agency / Creative
+        else if (combined.contains("marketing") || combined.contains("agency") || combined.contains("creative") ||
+                 combined.contains("design") || combined.contains("branding")) {
+            return "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&q=80"; // Team brainstorm
+        }
+        // Salon / Beauty / Spa
+        else if (combined.contains("salon") || combined.contains("hair") || combined.contains("beauty") ||
+                 combined.contains("spa") || combined.contains("parlour") || combined.contains("parlor")) {
+            return "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&q=80"; // Beauty salon
+        }
+        // Restaurant / Cafe / Food
+        else if (combined.contains("restaurant") || combined.contains("cafe") || combined.contains("food") ||
+                 combined.contains("dine") || combined.contains("kitchen") || combined.contains("biryani")) {
             return "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80"; // Restaurant
-        } else if (catLower.contains("dental") || catLower.contains("dentist") || catLower.contains("clinic")) {
-            return "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&q=80"; // Dental/Medical
-        } else if (catLower.contains("garage") || catLower.contains("auto") || catLower.contains("mechanic") || catLower.contains("repair")) {
+        }
+        // Dental / Clinic / Hospital / Medical
+        else if (combined.contains("dental") || combined.contains("dentist") || combined.contains("clinic") ||
+                 combined.contains("hospital") || combined.contains("medical") || combined.contains("doctor")) {
+            return "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&q=80"; // Medical clinic
+        }
+        // Auto / Mechanic / Garage
+        else if (combined.contains("garage") || combined.contains("auto") || combined.contains("mechanic") ||
+                 combined.contains("repair") || combined.contains("car")) {
             return "https://images.unsplash.com/photo-1487754180144-351b8e906e6f?w=600&q=80"; // Auto repair
-        } else if (catLower.contains("hotel") || catLower.contains("resort") || catLower.contains("hospitality")) {
+        }
+        // Hotel / Resort / Hospitality
+        else if (combined.contains("hotel") || combined.contains("resort") || combined.contains("hospitality") ||
+                 combined.contains("lodge") || combined.contains("inn")) {
             return "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=80"; // Hotel
-        } else if (catLower.contains("shop") || catLower.contains("store") || catLower.contains("retail")) {
-            return "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80"; // Retail shop
-        } else if (catLower.contains("gym") || catLower.contains("fitness")) {
+        }
+        // Retail / Shop / Store
+        else if (combined.contains("shop") || combined.contains("store") || combined.contains("retail") ||
+                 combined.contains("boutique")) {
+            return "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80"; // Retail
+        }
+        // Gym / Fitness
+        else if (combined.contains("gym") || combined.contains("fitness") || combined.contains("yoga") ||
+                 combined.contains("crossfit")) {
             return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80"; // Fitness
-        } else if (catLower.contains("bakery") || catLower.contains("cake")) {
+        }
+        // Bakery / Cake
+        else if (combined.contains("bakery") || combined.contains("cake") || combined.contains("pastry") ||
+                 combined.contains("confection")) {
             return "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80"; // Bakery
         }
+        // Education / School / Coaching / Tutor
+        else if (combined.contains("education") || combined.contains("school") || combined.contains("coaching") ||
+                 combined.contains("tutor") || combined.contains("academy") || combined.contains("institute")) {
+            return "https://images.unsplash.com/photo-1523050854058-8df90110c476?w=600&q=80"; // Education
+        }
+        // Real Estate / Property
+        else if (combined.contains("real estate") || combined.contains("property") || combined.contains("realty") ||
+                 combined.contains("builder")) {
+            return "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80"; // Real estate
+        }
+        // Law / Legal / Attorney
+        else if (combined.contains("law") || combined.contains("legal") || combined.contains("attorney") ||
+                 combined.contains("advocate")) {
+            return "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&q=80"; // Law office
+        }
+        // Photography / Studio
+        else if (combined.contains("photo") || combined.contains("studio") || combined.contains("videograph")) {
+            return "https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=600&q=80"; // Photography
+        }
+        // Consulting / Professional Services
+        else if (combined.contains("consult") || combined.contains("advisory") || combined.contains("accounting") ||
+                 combined.contains("chartered")) {
+            return "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80"; // Consulting
+        }
 
-        return "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&q=80"; // General business
+        // Default fallback — professional office
+        return "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80";
     }
 
     public Post updatePost(String postId, String content) {

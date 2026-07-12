@@ -108,7 +108,7 @@ export default function PublicStorePage({ params }: { params: Promise<{ location
           <div className="h-7 w-7 rounded-lg bg-violet-600 flex items-center justify-center">
             <Star className="h-4 w-4 text-white fill-white" />
           </div>
-          <span className="text-sm font-bold text-slate-300">GMB AI Manager</span>
+          <span className="text-sm font-bold text-slate-300">BizLocalPilot AI</span>
         </div>
         <span className="text-xs text-slate-500 hidden sm:block">Powered by AI</span>
       </header>
@@ -260,7 +260,7 @@ export default function PublicStorePage({ params }: { params: Promise<{ location
           <p className="text-xs text-slate-600">
             This page is powered by{' '}
             <a href="/" className="text-violet-400 hover:text-violet-300 font-semibold">
-              GMB AI Manager
+              BizLocalPilot AI
             </a>{' '}
             — Help your business grow online.
           </p>

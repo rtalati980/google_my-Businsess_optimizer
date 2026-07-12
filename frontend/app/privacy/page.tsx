@@ -78,7 +78,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className="text-sm text-slate-300 pl-6 list-disc space-y-1.5">
               <li>To allow you to draft, schedule, and publish posts and local updates to Google Maps.</li>
-              <li>To fetch, analyze, and enable owner replies on GMB customer reviews (either manually or via Claude AI generator).</li>
+              <li>To fetch, analyze, and enable owner replies on GMB customer reviews (either manually or via Gemini AI generator).</li>
               <li>To generate automated Weekly Performance Reports and local SEO audits.</li>
               <li>To manage your premium billing subscriptions securely via Razorpay.</li>
             </ul>

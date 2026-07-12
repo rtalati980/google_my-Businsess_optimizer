@@ -34,6 +34,7 @@ export interface Location {
   phone?: string;
   website?: string;
   category?: string;
+  description?: string;
   latitude?: number;
   longitude?: number;
 }

@@ -15,50 +15,50 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://optimizer-profile.netlify.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://bizlocalpilot.ai"),
   title: {
-    default: "GMB AI Manager — AI-Powered Google Business Profile Manager",
-    template: "%s | GMB AI Manager",
+    default: "BizLocalPilot AI — Grow Your Business on Google Maps with AI",
+    template: "%s | BizLocalPilot AI",
   },
   description:
-    "Grow your local business faster with GMB AI Manager. Auto-generate AI review replies, publish GMB posts, get local SEO audits, and track competitors — all powered by Claude AI.",
+    "India's #1 AI-powered Google Business Profile optimizer. Auto-reply to reviews, generate SEO posts, audit your profile, track competitors, and rank higher on Google Maps — all on autopilot.",
   keywords: [
     "Google Business Profile management",
-    "Google My Business AI",
-    "GMB review reply generator",
-    "local SEO tool",
-    "AI review responses",
-    "local business SEO",
-    "GMB post scheduler",
-    "competitor tracking local SEO",
+    "Google My Business AI India",
+    "AI review reply generator",
+    "local SEO tool India",
     "Google Maps ranking tool",
-    "Claude AI business tool",
+    "GMB post scheduler",
+    "business profile optimizer",
+    "local business SEO",
+    "competitor tracking",
+    "BizLocalPilot",
   ],
-  authors: [{ name: "GMB AI Manager" }],
-  creator: "GMB AI Manager",
-  publisher: "GMB AI Manager",
+  authors: [{ name: "BizLocalPilot AI" }],
+  creator: "BizLocalPilot AI",
+  publisher: "BizLocalPilot AI",
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "http://localhost:3000",
-    title: "GMB AI Manager — AI-Powered Google Business Profile Manager",
+    url: "https://bizlocalpilot.ai",
+    title: "BizLocalPilot AI — Grow Your Business on Google Maps with AI",
     description:
-      "Auto-respond to reviews, schedule GMB posts, and rank higher on Google Maps with AI-powered SEO recommendations.",
-    siteName: "GMB AI Manager",
+      "Auto-reply to reviews, generate SEO posts, audit your profile, and rank higher on Google Maps. Built for Indian businesses.",
+    siteName: "BizLocalPilot AI",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "GMB AI Manager Dashboard Preview",
+        alt: "BizLocalPilot AI Dashboard",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "GMB AI Manager — Grow your Google Business with AI",
+    title: "BizLocalPilot AI — Rank Higher on Google Maps",
     description:
-      "Respond to reviews instantly. Schedule posts. Rank higher on Google Maps. All on autopilot with AI.",
+      "AI-powered Google Business Profile management for Indian businesses. Reviews, posts, SEO audits, competitor tracking — all automated.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -73,22 +73,22 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "http://localhost:3000",
+    canonical: "https://bizlocalpilot.ai",
   },
 };
 
-// JSON-LD Structured Data for Google AI / SGE recommendation
+// JSON-LD Structured Data
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "SoftwareApplication",
-      name: "GMB AI Manager",
+      name: "BizLocalPilot AI",
       applicationCategory: "BusinessApplication",
       description:
-        "AI-powered SaaS tool for local businesses to manage Google Business Profiles, auto-reply to reviews using Claude AI, schedule GMB posts, and track competitor SEO rankings.",
+        "India's #1 AI-powered SaaS platform for local businesses to optimize Google Business Profiles, auto-reply to reviews, generate SEO posts, and track competitor rankings.",
       operatingSystem: "Web",
-      url: "http://localhost:3000",
+      url: "https://bizlocalpilot.ai",
       offers: {
         "@type": "Offer",
         price: "499",
@@ -99,33 +99,35 @@ const jsonLd = {
       aggregateRating: {
         "@type": "AggregateRating",
         ratingValue: "4.9",
-        reviewCount: "120",
+        reviewCount: "250",
       },
       featureList: [
         "AI Review Reply Generator",
-        "GMB Post Scheduler",
-        "Local SEO Auditor",
-        "Competitor Tracker",
-        "Weekly AI Performance Reports",
-        "Public Store Landing Page",
+        "Google Posts AI Scheduler",
+        "Business Profile Audit",
+        "Local SEO Optimizer",
+        "Competitor Analysis",
+        "Festival Content Generator",
+        "Multi-language Support",
+        "Performance Analytics",
       ],
     },
     {
       "@type": "Organization",
-      name: "GMB AI Manager",
-      url: "http://localhost:3000",
+      name: "BizLocalPilot AI",
+      url: "https://bizlocalpilot.ai",
       description:
-        "Helping local businesses grow on Google with AI-powered profile management.",
+        "Helping Indian businesses rank higher on Google Maps with AI-powered profile optimization.",
     },
     {
       "@type": "WebSite",
-      name: "GMB AI Manager",
-      url: "http://localhost:3000",
+      name: "BizLocalPilot AI",
+      url: "https://bizlocalpilot.ai",
       potentialAction: {
         "@type": "SearchAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: "http://localhost:3000/store/{search_term_string}",
+          urlTemplate: "https://bizlocalpilot.ai/store/{search_term_string}",
         },
         "query-input": "required name=search_term_string",
       },

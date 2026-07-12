@@ -26,7 +26,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-[#0a0f1e] flex flex-col items-center justify-center text-white">
         <Loader2 className="h-8 w-8 text-violet-500 animate-spin mb-2" />
-        <span className="text-xs font-bold text-slate-400">Loading GMB AI Manager...</span>
+        <span className="text-xs font-bold text-slate-400">Loading BizLocalPilot AI...</span>
       </div>
     );
   }

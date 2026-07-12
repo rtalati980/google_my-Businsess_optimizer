@@ -131,7 +131,7 @@ export default function ReportsPage() {
           {generating ? (
             <div className="bg-card border border-border rounded-2xl p-12 text-center text-muted-foreground space-y-4">
               <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto" />
-              <h4 className="font-bold text-foreground">Claude is analyzing GMB profiles...</h4>
+               <h4 className="font-bold text-foreground">Gemini is analyzing GMB profiles...</h4>
               <p className="text-sm max-w-xs mx-auto">
                 Scanning reviews text, computing average ratings, and generating local SEO keywords.
               </p>

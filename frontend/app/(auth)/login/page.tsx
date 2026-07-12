@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
+import { Sparkles, CheckCircle2, Loader2, ArrowRight, Rocket } from 'lucide-react';
 import axios from 'axios';
 
 export default function LoginPage() {
@@ -55,11 +55,11 @@ export default function LoginPage() {
 
         {/* Top Header */}
         <div className="flex items-center gap-3 relative z-10">
-          <div className="p-2.5 bg-violet-600/20 border border-violet-500/30 rounded-xl">
-            <Sparkles className="h-6 w-6 text-violet-400" />
+          <div className="p-2.5 gradient-bg rounded-xl shadow-lg shadow-primary/20">
+            <Rocket className="h-6 w-6 text-white" />
           </div>
           <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-            GMB AI Manager
+            BizLocalPilot AI
           </span>
         </div>
 
@@ -69,7 +69,7 @@ export default function LoginPage() {
             Supercharge Your Local Search Authority
           </h1>
           <p className="text-slate-400 text-lg leading-relaxed">
-            Manage your Google Business Profiles, respond to reviews with Claude-powered AI, schedule local updates, and track competitors in one premium dashboard.
+            Manage your Google Business Profiles, respond to reviews with Gemini-powered AI, schedule local updates, and track competitors in one premium dashboard.
           </p>
 
           <div className="space-y-4">
@@ -107,7 +107,7 @@ export default function LoginPage() {
 
         {/* Footer info */}
         <div className="text-sm text-slate-500 relative z-10">
-          © 2026 GMB AI Manager. All rights reserved. Built for modern local brands.
+          © 2026 BizLocalPilot AI. All rights reserved. Built for modern local brands.
         </div>
       </div>
 
@@ -116,10 +116,10 @@ export default function LoginPage() {
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:text-left space-y-2">
             <div className="lg:hidden flex items-center justify-center gap-2 mb-6">
-              <div className="p-2 bg-violet-600/20 border border-violet-500/30 rounded-xl">
-                <Sparkles className="h-5 w-5 text-violet-400" />
+              <div className="p-2 gradient-bg rounded-xl shadow-lg shadow-primary/20">
+                <Rocket className="h-5 w-5 text-white" />
               </div>
-              <span className="font-bold text-lg">GMB AI Manager</span>
+              <span className="font-bold text-lg text-white">BizLocalPilot AI</span>
             </div>
             <h2 className="text-3xl font-extrabold tracking-tight text-white">
               Get Started
@@ -212,7 +212,7 @@ export default function LoginPage() {
             <div className="text-xs text-slate-300 space-y-3.5 max-h-[50vh] overflow-y-auto leading-relaxed border-y border-slate-800/80 py-4 pr-1 relative">
               <p><strong>1. Acceptance of Terms:</strong> By signing in or creating an account, you agree to comply with and be bound by these Terms of Service. If you disagree, you must not proceed.</p>
               <p><strong>2. Google Profile Access:</strong> You grant BizLocalPilot explicit permission to manage your Google My Business profile listings, customer reviews, owner responses, and updates via Google OAuth APIs.</p>
-              <p><strong>3. Review Response Automation:</strong> You authorize GMB AI Manager to publish drafted or AI-generated replies directly to your Google Maps review section on your behalf.</p>
+              <p><strong>3. Review Response Automation:</strong> You authorize BizLocalPilot AI to publish drafted or AI-generated replies directly to your Google Maps review section on your behalf.</p>
               <p><strong>4. Subscription Billing:</strong> New users receive a 14-day free trial on the Premium plan. Upon completion, a paywall will prevent dashboard usage until a Basic or Premium billing plan is purchased via Razorpay.</p>
               <p><strong>5. DPDP Act & Data Erasure:</strong> In complete compliance with India's DPDP Act 2023, you retain absolute ownership over your business profiles. You can trigger a permanent account delete and data erasure at any time from Settings.</p>
             </div>

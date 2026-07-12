@@ -24,10 +24,10 @@ function CallbackContent() {
   }, [searchParams, router]);
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
-      <Loader2 className="h-10 w-10 text-violet-500 animate-spin mb-4" />
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-foreground">
+      <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
       <h3 className="text-xl font-bold tracking-tight">Completing Google Authentication</h3>
-      <p className="text-sm text-slate-400 mt-2">Preparing your GMB AI Manager dashboard...</p>
+      <p className="text-sm text-muted-foreground mt-2">Preparing your BizLocalPilot AI dashboard...</p>
     </div>
   );
 }
@@ -35,8 +35,8 @@ function CallbackContent() {
 export default function CallbackPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
-        <Loader2 className="h-10 w-10 text-violet-500 animate-spin" />
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center text-foreground">
+        <Loader2 className="h-10 w-10 text-primary animate-spin" />
       </div>
     }>
       <CallbackContent />
