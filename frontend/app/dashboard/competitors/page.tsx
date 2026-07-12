@@ -78,7 +78,7 @@ export default function CompetitorsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Form & Comparison Card */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 order-last lg:order-first space-y-6">
           {/* Add Competitor */}
           <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
             <h3 className="text-base font-black mb-4 flex items-center gap-2">
@@ -131,7 +131,7 @@ export default function CompetitorsPage() {
         </div>
 
         {/* Right Column: Comparison Table / List */}
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-8 order-first lg:order-last">
           <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-border bg-secondary/10 flex items-center justify-between">
               <h3 className="text-base font-black flex items-center gap-2">

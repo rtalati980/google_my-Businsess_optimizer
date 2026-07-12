@@ -220,6 +220,15 @@ public class AiService {
         }
     }
 
+    private String generateMockDescription(String businessName, String category) {
+        String biz = (businessName != null) ? businessName : "our local business";
+        String cat = (category != null) ? category : "professional services";
+        return String.format(
+            "Welcome to %s, the leading provider of high-quality %s. We are dedicated to delivering outstanding service, local expertise, and customer satisfaction in our community. Visit us or call today to discover why local residents trust %s for all their needs!",
+            biz, cat, biz
+        );
+    }
+
     private String generateMockWeeklyReport(String businessName) {
         String biz = (businessName != null) ? businessName : "your business";
         return "{\n" +

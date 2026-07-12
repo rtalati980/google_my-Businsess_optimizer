@@ -16,6 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.gmb.manager.service.AiService;
+import java.util.ArrayList;
+import java.util.HashMap;
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -25,6 +29,7 @@ public class BusinessController {
     private final InsightService insightService;
     private final LocationRepository locationRepository;
     private final BusinessRepository businessRepository;
+    private final AiService aiService;
 
     private boolean isOwner(Location location, User user) {
         Business biz = businessRepository.findById(location.getBusinessId()).orElse(null);
@@ -131,5 +136,59 @@ public class BusinessController {
 
         Location updated = gmbService.updateLocationProfile(locationId, name, category, phone, website, address, description);
         return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/locations/{locationId}/seo-description")
+    public ResponseEntity<?> generateSeoDescription(
+            @AuthenticationPrincipal User user,
+            @PathVariable String locationId,
+            @RequestBody(required = false) Map<String, Object> request
+    ) {
+        Location location = locationRepository.findById(locationId).orElse(null);
+        if (location == null) return ResponseEntity.notFound().build();
+        if (!isOwner(location, user)) return ResponseEntity.status(403).body("Access Denied");
+
+        List<String> keywords = new ArrayList<>();
+        if (request != null && request.containsKey("keywords")) {
+            Object kObj = request.get("keywords");
+            if (kObj instanceof List) {
+                List<?> rawList = (List<?>) kObj;
+                for (Object item : rawList) {
+                    if (item != null) keywords.add(item.toString());
+                }
+            }
+        }
+
+        String keywordsStr = String.join(", ", keywords);
+
+        String systemInstruction = String.format(
+                "You are BizLocalPilot AI, an expert copywriter specializing in Local SEO optimization for Google Business Profiles. " +
+                "Write a highly engaging, professional business description (MAXIMUM 750 CHARACTERS) for '%s', which is a '%s' business located in '%s'. " +
+                "Naturally incorporate the following local keywords: %s. " +
+                "The description must highlight key strengths, services, and why customers choose this business. " +
+                "CRITICAL: Do NOT write more than 750 characters total.",
+                location.getName(), location.getCategory(), location.getAddress() != null ? location.getAddress() : "", keywordsStr
+        );
+
+        String prompt = String.format(
+                "Write an optimized Google Business Profile description for:\n" +
+                "Business Name: %s\n" +
+                "Business Category: %s\n" +
+                "Location: %s\n" +
+                "Keywords to Include: %s\n\n" +
+                "Return ONLY the plain description text. No quotation marks around it, no titles, and no other introductory text.",
+                location.getName(), location.getCategory(), location.getAddress() != null ? location.getAddress() : "", keywordsStr
+        );
+
+        String generatedDescription = aiService.generateContent(systemInstruction, prompt);
+
+        // Limit character size
+        if (generatedDescription != null && generatedDescription.length() > 750) {
+            generatedDescription = generatedDescription.substring(0, 747) + "...";
+        }
+
+        Map<String, String> response = new HashMap<>();
+        response.put("description", generatedDescription != null ? generatedDescription : "");
+        return ResponseEntity.ok(response);
     }
 }
