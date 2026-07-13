@@ -1,10 +1,12 @@
 package com.gmb.manager.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -42,6 +44,14 @@ public class SecurityConfig {
             .headers(headers -> headers
                 .frameOptions(frame -> frame.deny())
                 .contentTypeOptions(cto -> {})
+            )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    // Return 401 JSON instead of redirecting to login page for API calls
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.getWriter().write("{\"error\":\"Not authenticated\",\"status\":401}");
+                })
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login", "/api/auth/callback", "/api/auth/mock-login", "/login/**", "/oauth2/**", "/api/public/**").permitAll()

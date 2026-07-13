@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { MapPin, Phone, Globe, Star, MessageCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL = typeof window !== 'undefined' 
+  ? '' 
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
 
 interface ReviewData {
   id: string;

@@ -1,49 +1,55 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, CheckCircle2, Loader2, ArrowRight, Rocket } from 'lucide-react';
+import { Loader2, ArrowRight, Sparkles } from 'lucide-react';
 import axios from 'axios';
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [termsError, setTermsError] = useState(false);
+  const [sandboxLoading, setSandboxLoading] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleGoogleLogin = () => {
-    if (!termsAccepted) {
-      setTermsError(true);
-      return;
-    }
-    // Redirect to backend OAuth2 initiation endpoint for production
-    window.location.href = process.env.NEXT_PUBLIC_API_URL 
-      ? `${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/google`
-      : 'http://localhost:8080/oauth2/authorization/google';
+    // Use the Next.js proxy route (proxied to backend via next.config.ts rewrites)
+    window.location.href = '/oauth2/authorization/google';
   };
 
   const handleSandboxLogin = async () => {
-    if (!termsAccepted) {
-      setTermsError(true);
-      return;
-    }
     try {
-      setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      setSandboxLoading(true);
+      const apiUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
       const res = await axios.post(`${apiUrl}/api/auth/mock-login`);
       if (res.data && res.data.token) {
         localStorage.setItem('gmb_auth_token', res.data.token);
         document.cookie = `gmb_auth_token=${res.data.token}; path=/; max-age=86400; SameSite=Lax`;
         router.replace('/dashboard');
       } else {
-        setLoading(false);
+        setSandboxLoading(false);
       }
     } catch (err) {
       console.error('Sandbox login failed:', err);
-      setLoading(false);
+      setSandboxLoading(false);
     }
   };
+
+  // Avoid hydration mismatch by showing minimal content until mounted
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
+          <p className="text-slate-400 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-950 text-white selection:bg-violet-500 selection:text-white">
@@ -56,7 +62,11 @@ export default function LoginPage() {
         {/* Top Header */}
         <div className="flex items-center gap-3 relative z-10">
           <div className="p-2.5 gradient-bg rounded-xl shadow-lg shadow-primary/20">
-            <Rocket className="h-6 w-6 text-white" />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+              <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+              <path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/>
+            </svg>
           </div>
           <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
             BizLocalPilot AI
@@ -74,8 +84,10 @@ export default function LoginPage() {
 
           <div className="space-y-4">
             <div className="flex items-start gap-3.5">
-              <div className="mt-1 p-0.5 bg-violet-500/20 rounded-full text-violet-400">
-                <CheckCircle2 className="h-5 w-5" />
+              <div className="mt-1 p-1.5 bg-violet-500/20 rounded-xl text-violet-400 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                </svg>
               </div>
               <div>
                 <h4 className="font-semibold text-slate-200">AI Review Auto-Responses</h4>
@@ -84,8 +96,10 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-start gap-3.5">
-              <div className="mt-1 p-0.5 bg-violet-500/20 rounded-full text-violet-400">
-                <CheckCircle2 className="h-5 w-5" />
+              <div className="mt-1 p-1.5 bg-violet-500/20 rounded-xl text-violet-400 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
               </div>
               <div>
                 <h4 className="font-semibold text-slate-200">GMB Post Campaign Scheduler</h4>
@@ -94,13 +108,33 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-start gap-3.5">
-              <div className="mt-1 p-0.5 bg-violet-500/20 rounded-full text-violet-400">
-                <CheckCircle2 className="h-5 w-5" />
+              <div className="mt-1 p-1.5 bg-violet-500/20 rounded-xl text-violet-400 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+                  <polyline points="16 7 22 7 22 13"/>
+                </svg>
               </div>
               <div>
                 <h4 className="font-semibold text-slate-200">Local SEO Competitor Tracker</h4>
                 <p className="text-sm text-slate-400">Track competitor rankings, categories, and review velocity to spot market opportunities.</p>
               </div>
+            </div>
+          </div>
+
+          {/* Trust badges */}
+          <div className="flex items-center gap-4 pt-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800/60 rounded-full border border-slate-700/50">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span className="text-xs text-slate-300 font-medium">DPDP Compliant</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800/60 rounded-full border border-slate-700/50">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              <span className="text-xs text-slate-300 font-medium">Google Verified</span>
             </div>
           </div>
         </div>
@@ -117,111 +151,123 @@ export default function LoginPage() {
           <div className="text-center lg:text-left space-y-2">
             <div className="lg:hidden flex items-center justify-center gap-2 mb-6">
               <div className="p-2 gradient-bg rounded-xl shadow-lg shadow-primary/20">
-                <Rocket className="h-5 w-5 text-white" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+                  <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+                  <path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/>
+                </svg>
               </div>
               <span className="font-bold text-lg text-white">BizLocalPilot AI</span>
             </div>
             <h2 className="text-3xl font-extrabold tracking-tight text-white">
-              Get Started
+              Welcome Back
             </h2>
             <p className="text-slate-400 text-sm">
-              Sign in to manage and grow your GMB presence.
+              Sign in with your Google account to manage and grow your GMB presence.
             </p>
           </div>
 
           <div className="space-y-4">
-            {/* Terms and Conditions Checkbox */}
-            <div className="flex items-start gap-2.5 p-3.5 bg-slate-900/50 border border-slate-800/80 rounded-xl">
-              <input
-                type="checkbox"
-                id="terms-checkbox"
-                checked={termsAccepted}
-                onChange={(e) => {
-                  setTermsAccepted(e.target.checked);
-                  setTermsError(false);
-                }}
-                className="mt-1 h-4 w-4 rounded border-slate-800 bg-slate-950 text-violet-600 focus:ring-violet-500 cursor-pointer"
-              />
-              <label htmlFor="terms-checkbox" className="text-xs text-slate-400 select-none cursor-pointer leading-relaxed">
-                I agree to the <button type="button" onClick={() => setShowTermsModal(true)} className="text-violet-400 hover:underline font-bold focus:outline-none">Terms of Service</button> and <a href="/privacy" className="text-violet-400 hover:underline font-bold">Privacy Policy</a> (compliant with DPDP Act 2023).
-              </label>
-            </div>
-
-            {termsError && (
-              <p className="text-xs text-red-500 font-bold animate-pulse pl-1">
-                ⚠️ You must agree to the Terms and Privacy Policy to proceed.
-              </p>
-            )}
-
-            {/* Sandbox Enter Button */}
+            {/* Primary Google OAuth Login Button */}
             <button
-              onClick={handleSandboxLogin}
+              id="google-login-btn"
+              onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-xl transition-all duration-200 shadow-lg shadow-violet-600/30 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3.5 px-4 py-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <>
-                  Enter Sandbox Dashboard
-                  <ArrowRight className="h-4 w-4" />
+                  <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24">
+                    <path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.27 0 3.198 2.698 1.24 6.65l4.026 3.115Z"/>
+                    <path fill="#34A853" d="M16.04 18.013c-1.09.703-2.474 1.078-4.04 1.078a7.077 7.077 0 0 1-6.723-4.823l-4.04 3.067A11.965 11.965 0 0 0 12 24c2.933 0 5.735-1.043 7.834-3l-3.793-2.987Z"/>
+                    <path fill="#4A90E2" d="M19.834 21c2.195-2.048 3.62-5.096 3.62-9 0-.71-.109-1.473-.272-2.182H12v4.637h6.436c-.317 1.559-1.17 2.766-2.395 3.558L19.834 21Z"/>
+                    <path fill="#FBBC05" d="M5.277 14.268A7.12 7.12 0 0 1 4.909 12c0-.782.125-1.533.357-2.235L1.24 6.65A11.934 11.934 0 0 0 0 12c0 1.92.445 3.73 1.237 5.335l4.04-3.067Z"/>
+                  </svg>
+                  Continue with Google
+                  <ArrowRight className="h-4 w-4 ml-auto" />
                 </>
               )}
             </button>
 
-            <div className="relative my-6 flex items-center justify-center">
+            <p className="text-center text-xs text-slate-500">
+              By signing in, you agree to our{' '}
+              <button type="button" onClick={() => setShowTermsModal(true)} className="text-violet-400 hover:underline font-bold">
+                Terms of Service
+              </button>{' '}
+              and{' '}
+              <a href="/privacy" className="text-violet-400 hover:underline font-bold">Privacy Policy</a>
+            </p>
+
+            <div className="relative flex items-center justify-center my-2">
               <span className="absolute px-3 bg-slate-950 text-xs font-semibold text-slate-600 uppercase tracking-widest">
-                Or Production Mode
+                or
               </span>
               <div className="w-full border-t border-slate-800" />
             </div>
 
-            {/* Google OAuth Login Button */}
+            {/* Sandbox / Demo Login */}
             <button
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3.5 px-4 py-3 bg-slate-900 border border-slate-800 text-slate-200 hover:bg-slate-800 font-semibold rounded-xl transition-all duration-200"
+              id="sandbox-login-btn"
+              onClick={handleSandboxLogin}
+              disabled={sandboxLoading}
+              className="w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50"
             >
-              <svg className="h-5 w-5" viewBox="0 0 24 24">
-                <path
-                  fill="#EA4335"
-                  d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.13-5.136 4.13-3.224 0-5.837-2.613-5.837-5.837s2.613-5.837 5.837-5.837c1.397 0 2.673.493 3.677 1.31l3.07-3.07C18.8 3.105 15.72 2 12.24 2 6.584 2 2 6.584 2 12.24s4.584 10.24 10.24 10.24c5.795 0 10.24-4.11 10.24-10.24 0-.648-.065-1.282-.182-1.955H12.24z"
-                />
-              </svg>
-              Continue with Google OAuth
+              {sandboxLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 text-violet-400" />
+                  Try Demo (Sandbox Mode)
+                </>
+              )}
             </button>
 
-            <p className="text-[10px] text-center text-slate-500 leading-relaxed max-w-xs mx-auto pt-4 border-t border-slate-800/40">
-              * The Sandbox bypass logs you in with a pre-seeded Italian Restaurant group profile and reviews list instantly.
+            <p className="text-[10px] text-center text-slate-600 leading-relaxed max-w-xs mx-auto">
+              Demo mode gives you a pre-seeded business profile to explore all features without connecting Google.
             </p>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-800/50">
+            <div className="text-center p-2">
+              <div className="text-violet-400 font-black text-lg">500+</div>
+              <div className="text-slate-600 text-[10px]">Businesses</div>
+            </div>
+            <div className="text-center p-2 border-x border-slate-800/50">
+              <div className="text-violet-400 font-black text-lg">4.9★</div>
+              <div className="text-slate-600 text-[10px]">Avg Rating</div>
+            </div>
+            <div className="text-center p-2">
+              <div className="text-violet-400 font-black text-lg">2M+</div>
+              <div className="text-slate-600 text-[10px]">AI Replies</div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Terms and Conditions Popup Modal */}
+      {/* Terms Modal */}
       {showTermsModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative overflow-hidden space-y-4">
-            {/* Ambient background blur */}
             <div className="absolute -top-24 -right-24 w-40 h-40 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
-
             <h3 className="text-lg font-black text-white flex items-center gap-2 relative">
               <Sparkles className="h-5 w-5 text-violet-400" />
               Terms of Service
             </h3>
-            
             <div className="text-xs text-slate-300 space-y-3.5 max-h-[50vh] overflow-y-auto leading-relaxed border-y border-slate-800/80 py-4 pr-1 relative">
-              <p><strong>1. Acceptance of Terms:</strong> By signing in or creating an account, you agree to comply with and be bound by these Terms of Service. If you disagree, you must not proceed.</p>
-              <p><strong>2. Google Profile Access:</strong> You grant BizLocalPilot explicit permission to manage your Google My Business profile listings, customer reviews, owner responses, and updates via Google OAuth APIs.</p>
-              <p><strong>3. Review Response Automation:</strong> You authorize BizLocalPilot AI to publish drafted or AI-generated replies directly to your Google Maps review section on your behalf.</p>
-              <p><strong>4. Subscription Billing:</strong> New users receive a 14-day free trial on the Premium plan. Upon completion, a paywall will prevent dashboard usage until a Basic or Premium billing plan is purchased via Razorpay.</p>
-              <p><strong>5. DPDP Act & Data Erasure:</strong> In complete compliance with India's DPDP Act 2023, you retain absolute ownership over your business profiles. You can trigger a permanent account delete and data erasure at any time from Settings.</p>
+              <p><strong>1. Acceptance of Terms:</strong> By signing in, you agree to comply with and be bound by these Terms of Service.</p>
+              <p><strong>2. Google Profile Access:</strong> You grant BizLocalPilot permission to manage your Google My Business profile via Google OAuth APIs.</p>
+              <p><strong>3. Review Response Automation:</strong> You authorize BizLocalPilot AI to publish AI-generated replies to your Google Maps review section.</p>
+              <p><strong>4. Subscription Billing:</strong> New users get a 14-day free Premium trial. After that, a billing plan is required via Razorpay.</p>
+              <p><strong>5. DPDP Act &amp; Data Erasure:</strong> Compliant with India's DPDP Act 2023. You can delete your account and all data from Settings at any time.</p>
             </div>
-            
             <button
               onClick={() => setShowTermsModal(false)}
               className="w-full py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-md shadow-violet-600/25 relative"
             >
-              Accept & Close
+              Accept &amp; Close
             </button>
           </div>
         </div>
