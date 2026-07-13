@@ -57,11 +57,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        const token = localStorage.getItem('gmb_auth_token');
+        console.log('[Dashboard] Checking auth... Token:', token ? '✅' : '❌');
+
+        if (!token) {
+          console.warn('[Dashboard] No token found, redirecting to login');
+          router.replace('/login?reason=no_token');
+          return;
+        }
+
         const currentUser = await apiService.getCurrentUser();
+        console.log('[Dashboard] User loaded:', currentUser.email);
         setUser(currentUser);
-      } catch (err) {
-        console.error('Auth check failed:', err);
-        router.replace('/login');
+      } catch (err: any) {
+        console.error('[Dashboard] Auth check failed:', err.message || err);
+        console.error('[Dashboard] Error details:', err.response?.status, err.response?.data);
+        router.replace('/login?reason=auth_failed');
       }
     };
     fetchUser();

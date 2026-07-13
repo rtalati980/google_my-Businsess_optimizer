@@ -10,16 +10,33 @@ function CallbackContent() {
 
   useEffect(() => {
     const token = searchParams.get('token');
-    
+    const error = searchParams.get('error');
+
+    console.log('[Callback] Token:', token ? '✅ Present' : '❌ Missing');
+    console.log('[Callback] Error:', error || '❌ None');
+
+    if (error) {
+      console.error('[Callback] OAuth error:', error);
+      router.replace('/login?error=' + error);
+      return;
+    }
+
     if (token) {
-      // Save JWT token
-      localStorage.setItem('gmb_auth_token', token);
-      document.cookie = `gmb_auth_token=${token}; path=/; max-age=86400; SameSite=Lax`;
-      // Forward to dashboard
-      router.replace('/dashboard');
+      try {
+        // Save JWT token
+        localStorage.setItem('gmb_auth_token', token);
+        document.cookie = `gmb_auth_token=${token}; path=/; max-age=86400; SameSite=Lax`;
+        console.log('[Callback] Token saved, redirecting to dashboard...');
+        // Forward to dashboard
+        setTimeout(() => router.replace('/dashboard'), 500);
+      } catch (e) {
+        console.error('[Callback] Error saving token:', e);
+        router.replace('/login?error=token_save_failed');
+      }
     } else {
       // Redirect to login on authentication failure
-      router.replace('/login');
+      console.warn('[Callback] No token received from backend');
+      router.replace('/login?error=no_token');
     }
   }, [searchParams, router]);
 
