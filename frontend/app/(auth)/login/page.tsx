@@ -24,7 +24,7 @@ export default function LoginPage() {
   const handleSandboxLogin = async () => {
     try {
       setSandboxLoading(true);
-      const apiUrl = '';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       const res = await axios.post(`${apiUrl}/api/auth/mock-login`);
       if (res.data && res.data.token) {
         localStorage.setItem('gmb_auth_token', res.data.token);
