@@ -59,6 +59,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
+                .failureUrl(frontendUrl + "/login?error=true")
                 .successHandler(oAuth2SuccessHandler)
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

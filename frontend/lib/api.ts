@@ -4,9 +4,7 @@ import {
   Post, AIReport, Competitor, DashboardInsights 
 } from './types';
 
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? '' 
-  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
+const API_BASE_URL = '';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -14,6 +12,10 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+if (typeof window !== 'undefined') {
+  console.log('[API] Client-side Resolved Base URL:', API_BASE_URL || '(relative)');
+}
 
 // Inject bearer token interceptor
 api.interceptors.request.use(

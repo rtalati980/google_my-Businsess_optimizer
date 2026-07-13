@@ -139,7 +139,7 @@ function DashboardWrapper({
     try {
       setSubLoading(true);
       const token = localStorage.getItem('gmb_auth_token');
-      const apiUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
+      const apiUrl = '';
       const res = await fetch(`${apiUrl}/api/subscriptions`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -180,7 +180,7 @@ function DashboardWrapper({
     try {
       setCheckingOut(planType);
       const token = localStorage.getItem('gmb_auth_token');
-      const apiUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
+      const apiUrl = '';
 
       // 1. Create Order
       const res = await fetch(`${apiUrl}/api/subscriptions/razorpay/create-order`, {
@@ -284,7 +284,7 @@ function DashboardWrapper({
         setGmbError(null);
         const businesses = await apiService.getBusinesses();
         if (businesses.length > 0) {
-          const apiUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
+          const apiUrl = '';
           const res = await fetch(`${apiUrl}/api/locations`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('gmb_auth_token')}`
