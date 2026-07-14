@@ -124,6 +124,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     .build()
                     .toUriString();
 
+            System.out.println("[OAuth2SuccessHandler] Frontend URL: " + frontendUrl);
+            System.out.println("[OAuth2SuccessHandler] Redirect URL: " + targetUrl);
+
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
         } catch (Exception e) {
             System.err.println("[OAuth2SuccessHandler] Error during authentication success handling:");
