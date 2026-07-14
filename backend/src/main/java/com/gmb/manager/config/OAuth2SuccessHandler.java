@@ -40,6 +40,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             HttpServletResponse response,
             Authentication authentication
     ) throws IOException, ServletException {
+        System.out.println("[OAuth2SuccessHandler] ===== OAUTH2 SUCCESS =====");
+        System.out.println("[OAuth2SuccessHandler] Frontend URL from config: " + frontendUrl);
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
             String email = oAuth2User.getAttribute("email");
@@ -129,8 +131,19 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
         } catch (Exception e) {
-            System.err.println("[OAuth2SuccessHandler] Error during authentication success handling:");
+            System.err.println("[OAuth2SuccessHandler] ❌ ERROR during authentication:");
+            System.err.println("[OAuth2SuccessHandler] Error type: " + e.getClass().getName());
+            System.err.println("[OAuth2SuccessHandler] Error message: " + e.getMessage());
+            System.err.println("[OAuth2SuccessHandler] Frontend URL was: " + frontendUrl);
             e.printStackTrace();
+
+            // Try to redirect to login with error
+            try {
+                response.sendRedirect(frontendUrl + "/login?error=" + e.getClass().getSimpleName());
+            } catch (Exception redirectErr) {
+                System.err.println("[OAuth2SuccessHandler] Failed to redirect on error");
+                redirectErr.printStackTrace();
+            }
             throw new ServletException("Authentication success processing failed", e);
         }
     }
