@@ -86,6 +86,10 @@ const nextConfig: NextConfig = {
           source: "/oauth2/:path*",
           destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/oauth2/:path*`,
         },
+        {
+          source: "/login/oauth2/code/:path*",
+          destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/login/oauth2/code/:path*`,
+        },
       ],
     };
   },

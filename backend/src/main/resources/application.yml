@@ -34,7 +34,7 @@ spring:
               - email
               - profile
               - https://www.googleapis.com/auth/business.manage
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            redirect-uri: "${GOOGLE_REDIRECT_URI:http://localhost:3000/login/oauth2/code/google}"
             authorization-grant-type: authorization_code
         provider:
           google:

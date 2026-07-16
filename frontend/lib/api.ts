@@ -4,7 +4,9 @@ import {
   Post, AIReport, Competitor, DashboardInsights 
 } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = typeof window !== 'undefined'
+  ? ''
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
 
 const api = axios.create({
   baseURL: API_BASE_URL,

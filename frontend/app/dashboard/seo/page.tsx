@@ -231,9 +231,9 @@ export default function SeoAuditorPage() {
   const parsedKeywords = useMemo(() => {
     return audit
       ? audit.keywordSuggestions
-          .split(',')
-          .map((k) => k.replace(/\n/g, ' ').replace(/^\d+\.\s*/, '').trim())
-          .filter((k) => k.length > 2)
+        .split(',')
+        .map((k) => k.replace(/\n/g, ' ').replace(/^\d+\.\s*/, '').trim())
+        .filter((k) => k.length > 2)
       : [];
   }, [audit]);
 
@@ -288,7 +288,7 @@ export default function SeoAuditorPage() {
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-card border border-border rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-around gap-6 shadow-sm">
               <ScoreDial score={audit.seoScore} />
-              
+
               <div className="space-y-4 max-w-sm">
                 <div>
                   <h3 className="font-bold text-foreground">SEO Health Status</h3>
@@ -359,11 +359,10 @@ export default function SeoAuditorPage() {
                         key={i}
                         onClick={() => insertKeyword(keyword)}
                         disabled={isUsed}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full transition-all active:scale-95 ${
-                          isUsed
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full transition-all active:scale-95 ${isUsed
                             ? 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 cursor-default'
                             : 'bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 cursor-pointer'
-                        }`}
+                          }`}
                       >
                         {isUsed ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
                         {keyword}
