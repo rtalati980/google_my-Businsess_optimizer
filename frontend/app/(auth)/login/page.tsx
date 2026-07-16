@@ -1,20 +1,49 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Loader2, ArrowRight, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Loader2, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const errorParam = searchParams.get('error');
+  const reasonParam = searchParams.get('reason');
+
   const [loading, setLoading] = useState(false);
   const [sandboxLoading, setSandboxLoading] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (errorParam) {
+      if (errorParam === 'true') {
+        setErrorMessage('Authentication failed. Please try again.');
+      } else if (errorParam === 'token_save_failed') {
+        setErrorMessage('Failed to save login token. Please enable cookies and localStorage.');
+      } else if (errorParam === 'no_token') {
+        setErrorMessage('No authentication token was received from the server.');
+      } else {
+        setErrorMessage(`Login error: ${errorParam}`);
+      }
+    } else if (reasonParam) {
+      if (reasonParam === 'auth_failed') {
+        setErrorMessage('Your session has expired or is invalid. Please sign in again.');
+      } else if (reasonParam === 'no_token') {
+        setErrorMessage('Please sign in to access the dashboard.');
+      } else if (reasonParam === 'session_expired') {
+        setErrorMessage('Your session has expired. Please sign in again.');
+      } else {
+        setErrorMessage(`Authentication required: ${reasonParam}`);
+      }
+    }
+  }, [errorParam, reasonParam]);
 
   const handleGoogleLogin = () => {
     // Use the Next.js proxy route (proxied to backend via next.config.ts rewrites)
@@ -167,6 +196,13 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {errorMessage && (
+            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm font-medium flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           <div className="space-y-4">
             {/* Primary Google OAuth Login Button */}
             <button
@@ -273,5 +309,20 @@ export default function LoginPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
+          <p className="text-slate-400 text-sm">Loading...</p>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
