@@ -13,7 +13,7 @@ interface SEOAudit {
   createdAt: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
 
 function ScoreDial({ score }: { score: number }) {
   const radius = 70;

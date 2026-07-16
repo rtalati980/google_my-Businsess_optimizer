@@ -5,6 +5,7 @@ import com.gmb.manager.entity.Review;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Service;
 public class NotificationService {
 
     private final JavaMailSender mailSender;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     /**
      * Sends an email alert when a new low-star review is received.
@@ -48,13 +52,14 @@ public class NotificationService {
             "⭐ Rating: %s (%d/5)\n\n" +
             "💬 Review:\n\"%s\"\n\n" +
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
-            "👉 Reply now at: http://localhost:3000/dashboard/reviews\n\n" +
+            "👉 Reply now at: %s/dashboard/reviews\n\n" +
             "This alert was sent by GMB AI Manager.",
             location.getName(),
             review.getReviewerName(),
             stars,
             review.getRating(),
-            review.getComment() != null ? review.getComment() : "(No comment)"
+            review.getComment() != null ? review.getComment() : "(No comment)",
+            frontendUrl
         );
     }
 }

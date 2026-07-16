@@ -9,7 +9,7 @@ import {
   Check, Loader2, RefreshCw, AlertCircle
 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
 
 export default function SettingsPage() {
   const { user, locations, selectedLocation } = useDashboard();
