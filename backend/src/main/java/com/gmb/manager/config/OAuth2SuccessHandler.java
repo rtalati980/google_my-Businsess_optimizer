@@ -126,14 +126,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
         } catch (Exception e) {
-            System.err.println("[OAuth2SuccessHandler] ❌ ERROR during authentication:");
-            System.err.println("[OAuth2SuccessHandler] Error type: " + e.getClass().getName());
-            System.err.println("[OAuth2SuccessHandler] Error message: " + e.getMessage());
-            System.err.println("[OAuth2SuccessHandler] Frontend URL was: " + frontendUrl);
+            System.err.println("[OAuth2SuccessHandler] Error during authentication success handling:");
             e.printStackTrace();
-
-            // Don't try to redirect on error - just throw exception
-            throw new ServletException("Authentication failed: " + e.getMessage(), e);
+            throw new ServletException("Authentication success processing failed", e);
         }
     }
 }
