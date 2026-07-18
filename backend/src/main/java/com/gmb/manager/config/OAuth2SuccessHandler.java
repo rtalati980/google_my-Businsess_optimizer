@@ -40,11 +40,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             HttpServletResponse response,
             Authentication authentication
     ) throws IOException, ServletException {
-        System.out.println("[OAuth2SuccessHandler] ✅ SUCCESS HANDLER CALLED");
-        System.out.println("[OAuth2SuccessHandler] Frontend URL: " + frontendUrl);
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-            System.out.println("[OAuth2SuccessHandler] Got OAuth2User");
             String email = oAuth2User.getAttribute("email");
             String name = oAuth2User.getAttribute("name");
             String avatarUrl = oAuth2User.getAttribute("picture");
@@ -129,8 +126,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
         } catch (Exception e) {
-            System.err.println("[OAuth2SuccessHandler] ❌ ERROR: " + e.getMessage());
-            System.err.println("[OAuth2SuccessHandler] Frontend URL was: " + frontendUrl);
+            System.err.println("[OAuth2SuccessHandler] Error during authentication success handling:");
             e.printStackTrace();
             throw new ServletException("Authentication success processing failed", e);
         }
