@@ -40,17 +40,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             HttpServletResponse response,
             Authentication authentication
     ) throws IOException, ServletException {
-        System.out.println("[OAuth2SuccessHandler] ===== OAUTH2 SUCCESS =====");
-        System.out.println("[OAuth2SuccessHandler] Frontend URL from config: " + frontendUrl);
-
-        // CHECK: Validate frontendUrl is set
-        if (frontendUrl == null || frontendUrl.isEmpty() || frontendUrl.equals("${app.frontend-url}")) {
-            System.err.println("[OAuth2SuccessHandler] ❌ CRITICAL: FRONTEND_URL NOT SET!");
-            System.err.println("[OAuth2SuccessHandler] frontendUrl value: " + frontendUrl);
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Frontend URL not configured");
-            return;
-        }
-
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
             String email = oAuth2User.getAttribute("email");
@@ -135,9 +124,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     .build()
                     .toUriString();
 
-            System.out.println("[OAuth2SuccessHandler] Frontend URL: " + frontendUrl);
-            System.out.println("[OAuth2SuccessHandler] Redirect URL: " + targetUrl);
-
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
         } catch (Exception e) {
             System.err.println("[OAuth2SuccessHandler] ❌ ERROR during authentication:");
@@ -146,14 +132,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             System.err.println("[OAuth2SuccessHandler] Frontend URL was: " + frontendUrl);
             e.printStackTrace();
 
-            // Try to redirect to login with error
-            try {
-                response.sendRedirect(frontendUrl + "/login?error=" + e.getClass().getSimpleName());
-            } catch (Exception redirectErr) {
-                System.err.println("[OAuth2SuccessHandler] Failed to redirect on error");
-                redirectErr.printStackTrace();
-            }
-            throw new ServletException("Authentication success processing failed", e);
+            // Don't try to redirect on error - just throw exception
+            throw new ServletException("Authentication failed: " + e.getMessage(), e);
         }
     }
 }
