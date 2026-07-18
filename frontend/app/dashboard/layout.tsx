@@ -53,7 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setShowDpdpBanner(false);
   };
 
-  // Load authenticated user — locations are fetched in DashboardWrapper after user is set
+  // Load authenticated user
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -66,8 +66,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           return;
         }
 
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-        const res = await fetch(`${backendUrl}/api/auth/me`, {
+        // Use relative URL so Next.js proxy handles CORS
+        const res = await fetch(`/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
