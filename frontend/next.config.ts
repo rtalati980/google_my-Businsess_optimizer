@@ -72,15 +72,21 @@ const nextConfig: NextConfig = {
 
   // Rewrites for API proxying
   async rewrites() {
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+    // Avoid IPv6 resolution issues locally by forcing 127.0.0.1 for local backend
+    const apiDest = rawApiUrl.includes("localhost") || rawApiUrl.includes("127.0.0.1")
+      ? "http://127.0.0.1:8080"
+      : rawApiUrl;
+
     return {
       beforeFiles: [
         {
           source: "/api/:path*",
-          destination: `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080"}/api/:path*`,
+          destination: `${apiDest}/api/:path*`,
         },
         {
           source: "/oauth2/:path*",
-          destination: `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080"}/oauth2/:path*`,
+          destination: `${apiDest}/oauth2/:path*`,
         },
       ],
     };
@@ -88,7 +94,7 @@ const nextConfig: NextConfig = {
 
   // Environment variables
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080",
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
   },
 
   // Turbopack configuration for Next.js 16
