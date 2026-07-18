@@ -66,17 +66,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           return;
         }
 
-        const currentUser = await apiService.getCurrentUser();
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const res = await fetch(`${backendUrl}/api/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log('[Dashboard] /api/auth/me status:', res.status);
+
+        if (!res.ok) {
+          throw new Error(`Auth failed: ${res.status}`);
+        }
+
+        const currentUser = await res.json();
         console.log('[Dashboard] User loaded:', currentUser.email);
         setUser(currentUser);
       } catch (err: any) {
         console.error('[Dashboard] Auth check failed:', err.message || err);
-        console.error('[Dashboard] Error details:', err.response?.status, err.response?.data);
         router.replace('/login?reason=auth_failed');
       }
     };
     fetchUser();
   }, [router]);
+
 
   // Handle theme loading
   useEffect(() => {
