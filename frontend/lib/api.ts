@@ -5,7 +5,7 @@ import {
 } from './types';
 
 const API_BASE_URL = typeof window !== 'undefined'
-  ? ''
+  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080')
   : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
 
 const api = axios.create({
@@ -16,7 +16,7 @@ const api = axios.create({
 });
 
 if (typeof window !== 'undefined') {
-  console.log('[API] Client-side Resolved Base URL:', API_BASE_URL || '(relative)');
+  console.log('[API] Client-side Resolved Base URL:', API_BASE_URL);
 }
 
 // Inject bearer token interceptor
