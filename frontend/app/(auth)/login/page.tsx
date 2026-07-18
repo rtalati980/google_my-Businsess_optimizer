@@ -48,11 +48,8 @@ function LoginContent() {
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      // Request the Google OAuth URL while sending/receiving credentials (cookies)
-      const res = await axios.get(`${backendUrl}/api/auth/google-login-url`, {
-        withCredentials: true
-      });
+      // Call relative proxy URL to ensure cookie is accepted on same-origin (localhost)
+      const res = await axios.get('/api/auth/google-login-url');
       if (res.data && res.data.url) {
         window.location.href = res.data.url;
       } else {
