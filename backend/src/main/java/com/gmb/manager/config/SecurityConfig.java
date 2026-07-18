@@ -36,6 +36,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .addFilterBefore((request, response, chain) -> {
+                jakarta.servlet.http.HttpServletRequest req = (jakarta.servlet.http.HttpServletRequest) request;
+                if (req.getRequestURI().contains("/oauth2") || req.getRequestURI().contains("/login")) {
+                    System.out.println("[OAuthDebug] Request URI: " + req.getRequestURI());
+                    System.out.println("[OAuthDebug] Session exists: " + (req.getSession(false) != null));
+                    if (req.getSession(false) != null) {
+                        System.out.println("[OAuthDebug] Session ID: " + req.getSession(false).getId());
+                    }
+                    if (req.getCookies() != null) {
+                        for (jakarta.servlet.http.Cookie cookie : req.getCookies()) {
+                            System.out.println("[OAuthDebug] Cookie: " + cookie.getName() + "=" + cookie.getValue());
+                        }
+                    } else {
+                        System.out.println("[OAuthDebug] No cookies present");
+                    }
+                }
+                chain.doFilter(request, response);
+            }, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.class)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session
