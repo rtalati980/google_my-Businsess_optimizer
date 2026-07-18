@@ -49,4 +49,19 @@ public class GmbAiManagerApplication {
             System.out.println("[GMB Manager] No .env file found. Using default/system environment configurations.");
         }
     }
+
+    @org.springframework.context.annotation.Bean
+    public jakarta.servlet.http.HttpSessionListener httpSessionListener() {
+        return new jakarta.servlet.http.HttpSessionListener() {
+            @Override
+            public void sessionCreated(jakarta.servlet.http.HttpSessionEvent se) {
+                System.out.println("[SessionDebug] Session CREATED: " + se.getSession().getId());
+            }
+
+            @Override
+            public void sessionDestroyed(jakarta.servlet.http.HttpSessionEvent se) {
+                System.out.println("[SessionDebug] Session DESTROYED: " + se.getSession().getId());
+            }
+        };
+    }
 }
