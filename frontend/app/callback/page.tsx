@@ -23,12 +23,17 @@ function CallbackContent() {
 
     if (token) {
       try {
-        // Save JWT token
+        // Save JWT token synchronously
         localStorage.setItem('gmb_auth_token', token);
         document.cookie = `gmb_auth_token=${token}; path=/; max-age=86400; SameSite=Lax`;
-        console.log('[Callback] Token saved, redirecting to dashboard...');
-        // Forward to dashboard
-        setTimeout(() => router.replace('/dashboard'), 500);
+        console.log('[Callback] Token saved successfully:', token.substring(0, 20) + '...');
+        // Verify token was saved before navigating
+        const saved = localStorage.getItem('gmb_auth_token');
+        if (!saved) {
+          throw new Error('Token write verification failed');
+        }
+        console.log('[Callback] Token verified in localStorage, navigating to dashboard...');
+        router.replace('/dashboard');
       } catch (e) {
         console.error('[Callback] Error saving token:', e);
         router.replace('/login?error=token_save_failed');

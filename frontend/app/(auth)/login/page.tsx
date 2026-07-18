@@ -46,8 +46,10 @@ function LoginContent() {
   }, [errorParam, reasonParam]);
 
   const handleGoogleLogin = () => {
-    // Use the Next.js proxy route (proxied to backend via next.config.ts rewrites)
-    window.location.href = '/oauth2/authorization/google';
+    // Go directly to backend OAuth2 endpoint so the session/state is on the backend
+    // (not proxied through Next.js which would break the OAuth state validation)
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    window.location.href = `${backendUrl}/oauth2/authorization/google`;
   };
 
   const handleSandboxLogin = async () => {

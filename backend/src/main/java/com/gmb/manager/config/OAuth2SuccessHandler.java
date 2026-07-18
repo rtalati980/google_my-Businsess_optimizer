@@ -71,6 +71,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             // Register or retrieve user
             Optional<User> userOpt = userRepository.findByEmail(email);
             User user;
+            System.out.println("[OAuth2] Processing user: " + email);
+            System.out.println("[OAuth2] User exists in DB: " + userOpt.isPresent());
             if (userOpt.isPresent()) {
                 user = userOpt.get();
                 // Update profile info
@@ -85,6 +87,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 }
                 user.setUpdatedAt(LocalDateTime.now());
                 user = userRepository.save(user);
+                System.out.println("[OAuth2] Existing user updated, ID: " + user.getId());
 
             } else {
                 user = User.builder()
@@ -99,6 +102,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                         .updatedAt(LocalDateTime.now())
                         .build();
                 user = userRepository.save(user);
+                System.out.println("[OAuth2] New user created, ID: " + user.getId());
 
                 // Create default subscription status (14-day premium free trial)
                 Subscription subscription = Subscription.builder()
