@@ -42,6 +42,15 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     ) throws IOException, ServletException {
         System.out.println("[OAuth2SuccessHandler] ===== OAUTH2 SUCCESS =====");
         System.out.println("[OAuth2SuccessHandler] Frontend URL from config: " + frontendUrl);
+
+        // CHECK: Validate frontendUrl is set
+        if (frontendUrl == null || frontendUrl.isEmpty() || frontendUrl.equals("${app.frontend-url}")) {
+            System.err.println("[OAuth2SuccessHandler] ❌ CRITICAL: FRONTEND_URL NOT SET!");
+            System.err.println("[OAuth2SuccessHandler] frontendUrl value: " + frontendUrl);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Frontend URL not configured");
+            return;
+        }
+
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
             String email = oAuth2User.getAttribute("email");
