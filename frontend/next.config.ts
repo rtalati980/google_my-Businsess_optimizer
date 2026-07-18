@@ -47,10 +47,6 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "geolocation=(), microphone=(), camera=()",
           },
-          {
-            key: "Cache-Control",
-            value: "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
-          },
         ],
       },
       {
@@ -80,11 +76,11 @@ const nextConfig: NextConfig = {
       beforeFiles: [
         {
           source: "/api/:path*",
-          destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/:path*`,
+          destination: `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080"}/api/:path*`,
         },
         {
           source: "/oauth2/:path*",
-          destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/oauth2/:path*`,
+          destination: `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080"}/oauth2/:path*`,
         },
       ],
     };
@@ -92,7 +88,7 @@ const nextConfig: NextConfig = {
 
   // Environment variables
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080",
   },
 
   // Turbopack configuration for Next.js 16
