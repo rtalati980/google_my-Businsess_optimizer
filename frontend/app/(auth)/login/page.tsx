@@ -45,11 +45,24 @@ function LoginContent() {
     }
   }, [errorParam, reasonParam]);
 
-  const handleGoogleLogin = () => {
-    // Go directly to backend OAuth2 endpoint so the session/state is on the backend
-    // (not proxied through Next.js which would break the OAuth state validation)
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    window.location.href = `${backendUrl}/oauth2/authorization/google`;
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      // Request the Google OAuth URL while sending/receiving credentials (cookies)
+      const res = await axios.get(`${backendUrl}/api/auth/google-login-url`, {
+        withCredentials: true
+      });
+      if (res.data && res.data.url) {
+        window.location.href = res.data.url;
+      } else {
+        throw new Error('No redirect URL returned');
+      }
+    } catch (e: any) {
+      console.error('Failed to resolve Google auth URL:', e);
+      setErrorMessage('Failed to connect to Google authentication service.');
+      setLoading(false);
+    }
   };
 
   const handleSandboxLogin = async () => {
