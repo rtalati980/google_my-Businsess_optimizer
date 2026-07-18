@@ -1,6 +1,5 @@
 server:
   port: 8080
-  forward-headers-strategy: framework
 
 spring:
   application:
@@ -34,7 +33,7 @@ spring:
               - email
               - profile
               - https://www.googleapis.com/auth/business.manage
-            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+            redirect-uri: "${BACKEND_URL:http://localhost:8080}/login/oauth2/code/google"
             authorization-grant-type: authorization_code
         provider:
           google:
