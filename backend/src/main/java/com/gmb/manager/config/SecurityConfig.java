@@ -59,7 +59,11 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
-                .failureUrl(frontendUrl + "/login?error=true")
+                .failureHandler((request, response, exception) -> {
+                    System.err.println("[OAuth2] Login failed: " + exception.getMessage());
+                    exception.printStackTrace();
+                    response.sendRedirect(frontendUrl + "/login?error=true");
+                })
                 .successHandler(oAuth2SuccessHandler)
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
