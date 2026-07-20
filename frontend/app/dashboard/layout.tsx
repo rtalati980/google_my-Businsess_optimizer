@@ -66,26 +66,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           return;
         }
 
-        // Use relative URL so Next.js proxy handles CORS
-        const res = await fetch(`/api/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        console.log('[Dashboard] /api/auth/me status:', res.status);
-
-        if (!res.ok) {
-          throw new Error(`Auth failed: ${res.status}`);
-        }
-
-        const currentUser = await res.json();
+        // Use apiService so the axios interceptor handles auth + auto-logout
+        const currentUser = await apiService.getCurrentUser();
         console.log('[Dashboard] User loaded:', currentUser.email);
         setUser(currentUser);
       } catch (err: any) {
         console.error('[Dashboard] Auth check failed:', err.message || err);
-        router.replace('/login?reason=auth_failed');
+        const details = (err as any)?.response?.data || err.message || err;
+        console.error('[Dashboard] Error details:', details);
+        // Only redirect if not already on login (avoid redirect loops)
+        if (!window.location.pathname.startsWith('/login')) {
+          router.replace('/login?reason=auth_failed');
+        }
       }
     };
     fetchUser();
