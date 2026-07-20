@@ -74,4 +74,38 @@ public class PublicLocationController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Public directory endpoint – returns all locations for business directory listing.
+     * No authentication required.
+     */
+    @GetMapping("/locations/directory")
+    public ResponseEntity<List<Map<String, Object>>> getBusinessDirectory() {
+        List<Location> locations = locationRepository.findAll();
+        List<Map<String, Object>> directory = new ArrayList<>();
+
+        for (Location loc : locations) {
+            List<Review> reviews = reviewRepository.findByLocationId(loc.getId());
+
+            OptionalDouble avgRating = reviews.stream()
+                    .mapToInt(Review::getRating)
+                    .average();
+
+            Map<String, Object> business = new LinkedHashMap<>();
+            business.put("id", loc.getId());
+            business.put("name", loc.getName());
+            business.put("category", loc.getCategory() != null ? loc.getCategory() : "Other");
+            business.put("address", loc.getAddress() != null ? loc.getAddress() : "");
+            business.put("phone", loc.getPhone() != null ? loc.getPhone() : "");
+            business.put("website", loc.getWebsite() != null ? loc.getWebsite() : "");
+            business.put("rating", avgRating.isPresent() ? Math.round(avgRating.getAsDouble() * 10.0) / 10.0 : 0.0);
+            business.put("reviewCount", reviews.size());
+            business.put("verified", true);
+            business.put("viewCount", 0); // Can be enhanced with view tracking
+
+            directory.add(business);
+        }
+
+        return ResponseEntity.ok(directory);
+    }
 }
