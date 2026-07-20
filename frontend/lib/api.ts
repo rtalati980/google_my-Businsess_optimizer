@@ -23,8 +23,14 @@ api.interceptors.request.use(
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('gmb_auth_token');
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        if (config.headers && typeof config.headers.set === 'function') {
+          config.headers.set('Authorization', `Bearer ${token}`);
+        } else {
+          config.headers = config.headers || {};
+          config.headers['Authorization'] = `Bearer ${token}`;
+        }
       }
+      console.log('[API Request]', config.method?.toUpperCase(), config.url, 'Headers:', config.headers);
     }
     return config;
   },
@@ -33,8 +39,12 @@ api.interceptors.request.use(
 
 // Auto-logout on expired/invalid token
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('[API Response SUCCESS]', response.config.url, response.status);
+    return response;
+  },
   (error) => {
+    console.error('[API Response ERROR]', error.config?.url, error.response?.status, error.message);
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('gmb_auth_token');
       document.cookie = 'gmb_auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
