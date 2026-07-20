@@ -9,6 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.web.util.UriComponentsBuilder;
+import java.util.UUID;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -24,6 +29,39 @@ public class AuthController {
     private final SubscriptionRepository subscriptionRepository;
     private final JwtService jwtService;
     private final com.gmb.manager.service.GmbService gmbService;
+
+    private final InMemoryClientRegistrationRepository clientRegistrationRepository;
+
+@Value("${app.frontend-url:http://localhost:3000}")
+private String frontendUrl;
+
+    @GetMapping("/google-login-url")
+public ResponseEntity<?> getGoogleLoginUrl() {
+    try {
+        ClientRegistration googleClient = clientRegistrationRepository.findByRegistrationId("google");
+        if (googleClient == null) {
+            return ResponseEntity.status(500).body(Map.of("error", "Google OAuth2 client not configured"));
+        }
+
+        String state = UUID.randomUUID().toString();
+        String authorizationUri = UriComponentsBuilder.fromUriString(googleClient.getProviderDetails().getAuthorizationUri())
+                .queryParam("client_id", googleClient.getClientId())
+                .queryParam("redirect_uri", googleClient.getRedirectUri())
+                .queryParam("response_type", "code")
+                .queryParam("scope", String.join(" ", googleClient.getScopes()))
+                .queryParam("state", state)
+                .queryParam("access_type", "offline")
+                .queryParam("prompt", "consent")
+                .build()
+                .toUriString();
+
+        return ResponseEntity.ok(Map.of("url", authorizationUri));
+    } catch (Exception e) {
+        System.err.println("[AuthController] Error constructing Google login URL: " + e.getMessage());
+        e.printStackTrace();
+        return ResponseEntity.status(500).body(Map.of("error", "Failed to construct authentication URL"));
+    }
+}
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal User user) {
