@@ -17,6 +17,7 @@ function LoginContent() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -47,6 +48,10 @@ function LoginContent() {
   }, [errorParam, reasonParam]);
 
   const handleGoogleLogin = () => {
+    if (!acceptedTerms) {
+      setErrorMessage('You must accept the Terms of Service & Privacy Policy to continue.');
+      return;
+    }
     try {
       setLoading(true);
       // Direct browser navigation to backend OAuth2 endpoint.
@@ -63,8 +68,11 @@ function LoginContent() {
     }
   };
 
-
   const handleSandboxLogin = async () => {
+    if (!acceptedTerms) {
+      setErrorMessage('You must accept the Terms of Service & Privacy Policy to continue.');
+      return;
+    }
     try {
       setSandboxLoading(true);
       const apiUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
@@ -218,12 +226,37 @@ function LoginContent() {
           )}
 
           <div className="space-y-4">
+            {/* Terms Consent Checkbox */}
+            <div className="flex items-start gap-3 p-3 bg-slate-900/40 border border-slate-800/60 rounded-xl">
+              <input
+                id="terms-checkbox"
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => {
+                  setAcceptedTerms(e.target.checked);
+                  if (e.target.checked) setErrorMessage('');
+                }}
+                className="mt-1 h-4 w-4 rounded border-slate-700 bg-slate-950 text-violet-600 focus:ring-violet-500 focus:ring-offset-slate-950 cursor-pointer"
+              />
+              <label htmlFor="terms-checkbox" className="text-xs text-slate-400 select-none cursor-pointer leading-relaxed">
+                I accept the{' '}
+                <button type="button" onClick={() => setShowTermsModal(true)} className="text-violet-400 hover:underline font-bold">
+                  Terms of Service
+                </button>{' '}
+                and{' '}
+                <a href="/privacy" className="text-violet-400 hover:underline font-bold">Privacy Policy</a>.
+                I consent to BizLocalPilot processing my GMB profile info.
+              </label>
+            </div>
+
             {/* Primary Google OAuth Login Button */}
             <button
               id="google-login-btn"
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3.5 px-4 py-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+              className={`w-full flex items-center justify-center gap-3.5 px-4 py-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-xl transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] ${
+                !acceptedTerms ? 'opacity-40 cursor-not-allowed' : ''
+              }`}
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -262,7 +295,9 @@ function LoginContent() {
               id="sandbox-login-btn"
               onClick={handleSandboxLogin}
               disabled={sandboxLoading}
-              className="w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50"
+              className={`w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white font-semibold rounded-xl transition-all duration-200 ${
+                !acceptedTerms ? 'opacity-40 cursor-not-allowed' : ''
+              }`}
             >
               {sandboxLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
