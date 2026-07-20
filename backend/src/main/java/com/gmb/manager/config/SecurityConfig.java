@@ -28,6 +28,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final CookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository;
     private final Environment environment;
 
     @Value("${app.frontend-url}")
@@ -77,6 +78,17 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
+                // Use cookie-based storage so OAuth2 state survives across
+                // stateless Cloud Run instances (session-based storage breaks
+                // when the callback lands on a different instance than login).
+                .authorizationEndpoint(ep -> ep
+                    .authorizationRequestRepository(cookieAuthorizationRequestRepository)
+                )
+                .redirectionEndpoint(ep -> ep
+                    .baseUri("/login/oauth2/code/*")
+                )
+                .tokenEndpoint(ep -> {})
+                .userInfoEndpoint(ep -> {})
                 .failureHandler((request, response, exception) -> {
                     System.err.println("[OAuth2] Login failed: " + exception.getMessage());
                     exception.printStackTrace();
@@ -96,7 +108,19 @@ public class SecurityConfig {
         // Set allowed origins based on environment
         boolean isProd = Arrays.asList(environment.getActiveProfiles()).contains("prod");
         if (isProd) {
-            configuration.setAllowedOrigins(Collections.singletonList(frontendUrl));
+            // In prod, allow the configured frontend URL plus any extra origins
+            // set via EXTRA_ALLOWED_ORIGINS env var (comma-separated).
+            // This handles Netlify, custom domains, or preview deployments.
+            List<String> origins = new java.util.ArrayList<>();
+            origins.add(frontendUrl);
+            String extra = environment.getProperty("EXTRA_ALLOWED_ORIGINS", "");
+            if (!extra.isBlank()) {
+                for (String o : extra.split(",")) {
+                    String trimmed = o.trim();
+                    if (!trimmed.isEmpty()) origins.add(trimmed);
+                }
+            }
+            configuration.setAllowedOrigins(origins);
         } else {
             configuration.setAllowedOrigins(Arrays.asList(
                 frontendUrl,
@@ -106,6 +130,7 @@ public class SecurityConfig {
                 "http://127.0.0.1:3001"
             ));
         }
+
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         configuration.setAllowedHeaders(Arrays.asList(

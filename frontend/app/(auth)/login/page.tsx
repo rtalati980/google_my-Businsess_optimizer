@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
-import axios from 'axios';
+
 
 function LoginContent() {
   const router = useRouter();
@@ -45,22 +45,23 @@ function LoginContent() {
     }
   }, [errorParam, reasonParam]);
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     try {
       setLoading(true);
-      // Call relative proxy URL to ensure cookie is accepted on same-origin (localhost)
-      const res = await axios.get('/api/auth/google-login-url');
-      if (res.data && res.data.url) {
-        window.location.href = res.data.url;
-      } else {
-        throw new Error('No redirect URL returned');
-      }
+      // Direct browser navigation to backend OAuth2 endpoint.
+      // This avoids the cross-domain session cookie issue that occurs when using
+      // an AJAX proxy: the backend's Set-Cookie (for OAuth2 state) is swallowed
+      // by the Next.js proxy and never reaches the browser, causing state mismatch
+      // (400 error) when Google redirects back.
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      window.location.href = `${apiUrl}/oauth2/authorization/google`;
     } catch (e: any) {
-      console.error('Failed to resolve Google auth URL:', e);
+      console.error('Failed to initiate Google auth:', e);
       setErrorMessage('Failed to connect to Google authentication service.');
       setLoading(false);
     }
   };
+
 
   const handleSandboxLogin = async () => {
     try {
