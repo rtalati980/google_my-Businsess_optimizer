@@ -49,8 +49,19 @@ services:
           type: web
           name: gmb-frontend
           property: url
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: gmb-backend
+          property: url
       - key: NEXT_PUBLIC_API_URL
         value: auto
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
 
 # Databases
 databases:

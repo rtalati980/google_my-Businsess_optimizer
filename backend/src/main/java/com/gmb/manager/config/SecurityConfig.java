@@ -72,7 +72,7 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/callback", "/api/auth/mock-login", "/login/**", "/oauth2/**", "/api/public/**").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/callback", "/api/auth/mock-login", "/api/auth/google-login-url", "/login/**", "/oauth2/**", "/api/public/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 .anyRequest().authenticated()
             )

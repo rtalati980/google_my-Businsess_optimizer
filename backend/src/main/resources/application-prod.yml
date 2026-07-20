@@ -17,6 +17,22 @@ spring:
     port: ${SPRING_MAIL_PORT:587}
     username: ${SPRING_MAIL_USERNAME}
     password: ${SPRING_MAIL_PASSWORD}
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+              - https://www.googleapis.com/auth/business.manage
+            redirect-uri: "${BACKEND_URL}/login/oauth2/code/google"
+            authorization-grant-type: authorization_code
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent
 
 app:
   jwt:

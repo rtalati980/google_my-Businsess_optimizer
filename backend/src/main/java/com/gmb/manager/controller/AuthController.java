@@ -24,6 +24,36 @@ public class AuthController {
     private final SubscriptionRepository subscriptionRepository;
     private final JwtService jwtService;
     private final com.gmb.manager.service.GmbService gmbService;
+    private final org.springframework.security.oauth2.client.registration.ClientRegistrationRepository clientRegistrationRepository;
+    private final org.springframework.security.oauth2.client.web.AuthorizationRequestRepository<org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest> authorizationRequestRepository =
+            new org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository();
+
+    @GetMapping("/google-login-url")
+    public ResponseEntity<?> getGoogleLoginUrl(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
+        org.springframework.security.oauth2.client.registration.ClientRegistration clientRegistration =
+                clientRegistrationRepository.findByRegistrationId("google");
+        if (clientRegistration == null) {
+            return ResponseEntity.status(500).body(Map.of("error", "Google client registration not found"));
+        }
+        
+        org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver resolver =
+                new org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver(
+                        clientRegistrationRepository, "/oauth2/authorization");
+        
+        org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest authRequest =
+                resolver.resolve(request, "google");
+        
+        if (authRequest == null) {
+            return ResponseEntity.status(500).body(Map.of("error", "Could not resolve Google OAuth2 request"));
+        }
+        
+        // Save the request into the session so the state matches when Google redirects back
+        authorizationRequestRepository.saveAuthorizationRequest(authRequest, request, response);
+        
+        // Return the Google OAuth authorization URL
+        return ResponseEntity.ok(Map.of("url", authRequest.getAuthorizationRequestUri()));
+    }
+
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal User user) {
