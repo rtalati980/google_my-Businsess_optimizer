@@ -123,11 +123,27 @@ public class InsightService {
             LocalDateTime end = LocalDateTime.now();
             LocalDateTime start = end.minusDays(29);
 
-            String googleLocationId = location.getGoogleLocationId();
+            // Google stores the full resource name as "accounts/XXXXX/locations/YYYYY".
+            // The Business Profile Performance API requires only the "locations/YYYYY" portion.
+            String rawGoogleId = location.getGoogleLocationId();
+            String googleLocationId;
+            if (rawGoogleId.contains("/locations/")) {
+                // Extract everything from "locations/" onward
+                googleLocationId = "locations/" + rawGoogleId.split("/locations/")[1];
+            } else if (rawGoogleId.startsWith("locations/")) {
+                // Already in the correct short form
+                googleLocationId = rawGoogleId;
+            } else {
+                // Bare numeric ID — wrap it
+                googleLocationId = "locations/" + rawGoogleId;
+            }
+
             String url = String.format(PERFORMANCE_API_URL,
                     googleLocationId,
                     start.getYear(), start.getMonthValue(), start.getDayOfMonth(),
                     end.getYear(), end.getMonthValue(), end.getDayOfMonth());
+
+            log.debug("Fetching GMB Performance data from URL: {}", url);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
@@ -147,6 +163,8 @@ public class InsightService {
                 JsonNode values = seriesNode.path("timeSeries").path("datedValues");
 
                 for (JsonNode entry : values) {
+                    // Google omits the "value" field for days with zero activity;
+                    // asLong(0) safely defaults those to 0.
                     long val = entry.path("value").asLong(0);
                     switch (metric) {
                         case "CALL_CLICKS" -> callClicks += val;
@@ -166,11 +184,18 @@ public class InsightService {
             insights.put("searchViews", searchImpressions);
             insights.put("mapsViews", mapsImpressions);
 
-            log.info("Loaded real GMB Performance data for location {}", locationId);
+            log.info("Loaded real GMB Performance data for location {} (googleLocationId={}): " +
+                            "searchViews={}, mapsViews={}, calls={}, websiteClicks={}, directions={}",
+                    locationId, googleLocationId,
+                    searchImpressions, mapsImpressions, callClicks, websiteClicks, directionRequests);
             return true;
 
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("GMB Performance API HTTP error for location {}: status={} body={}",
+                    locationId, e.getStatusCode(), e.getResponseBodyAsString());
+            return false;
         } catch (Exception e) {
-            log.error("Failed to fetch real GMB Performance data for location {}: {}", locationId, e.getMessage());
+            log.error("Failed to fetch GMB Performance data for location {}: {}", locationId, e.getMessage());
             return false;
         }
     }
