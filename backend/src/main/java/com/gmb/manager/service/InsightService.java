@@ -152,28 +152,41 @@ public class InsightService {
             ResponseEntity<String> resp = restTemplate.exchange(
                     url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
 
-            JsonNode root = objectMapper.readTree(resp.getBody());
+            String rawBody = resp.getBody();
+            log.info("GMB Performance API raw response for location {}: {}", locationId, rawBody);
+
+            JsonNode root = objectMapper.readTree(rawBody);
             JsonNode seriesList = root.path("multiDailyMetricTimeSeries");
 
             long callClicks = 0, websiteClicks = 0, directionRequests = 0;
             long searchImpressions = 0, mapsImpressions = 0;
 
-            for (JsonNode seriesNode : seriesList) {
-                String metric = seriesNode.path("dailyMetric").asText();
-                JsonNode values = seriesNode.path("timeSeries").path("datedValues");
+            // The API returns each group with:
+            //   "dailyMetrics": [ "METRIC_A", "METRIC_B", ... ]   (array, plural)
+            //   "timeSeries":   [ { "datedValues": [...] }, ... ]  (array, parallel-indexed)
+            // We iterate by index so each metric maps to its own timeSeries.
+            for (JsonNode seriesGroup : seriesList) {
+                JsonNode metricsArr   = seriesGroup.path("dailyMetrics");   // always an array
+                JsonNode tsArr        = seriesGroup.path("timeSeries");      // always an array
 
-                for (JsonNode entry : values) {
-                    // Google omits the "value" field for days with zero activity;
-                    // asLong(0) safely defaults those to 0.
-                    long val = entry.path("value").asLong(0);
-                    switch (metric) {
-                        case "CALL_CLICKS" -> callClicks += val;
-                        case "WEBSITE_CLICKS" -> websiteClicks += val;
-                        case "BUSINESS_DIRECTION_REQUESTS" -> directionRequests += val;
-                        case "BUSINESS_IMPRESSIONS_DESKTOP_SEARCH",
-                             "BUSINESS_IMPRESSIONS_MOBILE_SEARCH" -> searchImpressions += val;
-                        case "BUSINESS_IMPRESSIONS_DESKTOP_MAPS",
-                             "BUSINESS_IMPRESSIONS_MOBILE_MAPS" -> mapsImpressions += val;
+                for (int i = 0; i < metricsArr.size(); i++) {
+                    String metric = metricsArr.get(i).asText();
+                    JsonNode ts   = (i < tsArr.size()) ? tsArr.get(i) : null;
+                    if (ts == null) continue;
+
+                    for (JsonNode entry : ts.path("datedValues")) {
+                        // Google omits the "value" field for days with zero activity;
+                        // asLong(0) safely defaults those to 0.
+                        long val = entry.path("value").asLong(0);
+                        switch (metric) {
+                            case "CALL_CLICKS"                       -> callClicks       += val;
+                            case "WEBSITE_CLICKS"                    -> websiteClicks    += val;
+                            case "BUSINESS_DIRECTION_REQUESTS"       -> directionRequests+= val;
+                            case "BUSINESS_IMPRESSIONS_DESKTOP_SEARCH",
+                                 "BUSINESS_IMPRESSIONS_MOBILE_SEARCH"  -> searchImpressions += val;
+                            case "BUSINESS_IMPRESSIONS_DESKTOP_MAPS",
+                                 "BUSINESS_IMPRESSIONS_MOBILE_MAPS"    -> mapsImpressions   += val;
+                        }
                     }
                 }
             }
