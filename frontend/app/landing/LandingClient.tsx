@@ -140,7 +140,7 @@ function TestimonialCarousel() {
             <motion.div whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300 }}
               className="h-full bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex mb-3" aria-label={`${t.rating} star rating`}>
-                {[1,2,3,4,5].map(s => <Star key={s} className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden="true" />)}
+                {[1, 2, 3, 4, 5].map(s => <Star key={s} className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden="true" />)}
               </div>
               <p className="text-gray-600 text-sm leading-relaxed mb-5 italic" itemProp="reviewBody">"{t.text}"</p>
               <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
@@ -331,7 +331,7 @@ export default function LandingPageClient() {
                   className="flex flex-wrap gap-5 text-sm text-gray-400">
                   <span className="flex items-center gap-1.5">
                     <div className="flex" aria-label="4.9 out of 5 stars">
-                      {[1,2,3,4,5].map(i => <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />)}
+                      {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />)}
                     </div>
                     <strong className="text-gray-700">4.9/5</strong> · 120+ businesses
                   </span>
@@ -618,7 +618,7 @@ export default function LandingPageClient() {
               <span className="text-xs font-bold text-violet-600 uppercase tracking-widest block mb-3">Real Results</span>
               <h2 id="testimonials-heading" className="text-3xl sm:text-5xl font-black text-gray-900 mb-3">Loved by Business Owners Across India</h2>
               <div className="flex items-center justify-center gap-1">
-                {[1,2,3,4,5].map(i => <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" aria-hidden="true" />)}
+                {[1, 2, 3, 4, 5].map(i => <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" aria-hidden="true" />)}
                 <span className="ml-2 text-gray-400 text-sm">4.9 / 5 from 120+ businesses</span>
               </div>
             </motion.div>
@@ -671,11 +671,10 @@ export default function LandingPageClient() {
                 <motion.li key={plan.name} variants={fadeUp} custom={i}
                   whileHover={{ y: -8, boxShadow: plan.highlight ? '0 30px 60px rgba(124,58,237,0.2)' : '0 20px 40px rgba(0,0,0,0.08)' }}
                   transition={{ type: 'spring', stiffness: 220, damping: 20 }}
-                  className={`relative flex flex-col rounded-3xl p-7 list-none ${
-                    plan.highlight
-                      ? 'bg-violet-600 text-white shadow-2xl shadow-violet-200'
-                      : 'bg-white border border-gray-200 shadow-sm'
-                  }`}
+                  className={`relative flex flex-col rounded-3xl p-7 list-none ${plan.highlight
+                    ? 'bg-violet-600 text-white shadow-2xl shadow-violet-200'
+                    : 'bg-white border border-gray-200 shadow-sm'
+                    }`}
                   itemScope itemType="https://schema.org/Offer">
                   {plan.badge && (
                     <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
@@ -698,11 +697,10 @@ export default function LandingPageClient() {
                   </ul>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Link href="/login"
-                      className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all ${
-                        plan.highlight
-                          ? 'bg-white text-violet-700 hover:bg-violet-50 shadow-lg'
-                          : 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-100'
-                      }`}
+                      className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all ${plan.highlight
+                        ? 'bg-white text-violet-700 hover:bg-violet-50 shadow-lg'
+                        : 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-100'
+                        }`}
                       aria-label={`${plan.cta} — ${plan.name} plan at ${plan.price}${plan.period}`}>
                       {plan.cta} <ChevronRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
@@ -850,7 +848,7 @@ export default function LandingPageClient() {
                   <svg className="h-4 w-4 text-violet-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <a href="mailto:ronak.talati@codecrafters.co.in" itemProp="email"
+                  <a href="mailto:support@codecrafters.co.in" itemProp="email"
                     className="hover:text-violet-400 transition-colors break-all">
                     ronak.talati@codecrafters.co.in
                   </a>
