@@ -51,19 +51,24 @@ const stats = [
 
 const pricingPlans = [
   {
+    name: 'Free', price: '₹0', period: '/month', description: 'Try it \u2014 no credit card needed',
+    features: ['1 Location', '10 AI Reply Suggestions/mo', '5 AI Post Generations/mo', 'SEO Audit (1/mo)', 'AI Growth Advisor (1/mo)', '⚠️ Generate only \u2014 manual publish'],
+    cta: 'Get Started Free', highlight: false, planKey: 'FREE',
+  },
+  {
     name: 'Starter', price: '₹499', period: '/month', description: 'For single-location shops',
-    features: ['1 Location', 'AI Review Replies', '5 Scheduled Posts/mo', 'Basic SEO Score', 'Email Support'],
-    cta: 'Start Free Trial', highlight: false,
+    features: ['1 Location', '50 AI Reply Suggestions/mo', 'Unlimited AI Post Generation', '✅ Publish directly to Google', '3 SEO Audits/month', 'AI Growth Advisor', 'Email Support'],
+    cta: 'Upgrade to Starter', highlight: false, planKey: 'STARTER',
   },
   {
     name: 'Growth', price: '₹1,499', period: '/month', description: 'Best for growing brands', badge: '⭐ Most Popular',
-    features: ['3 Locations', 'Unlimited AI Replies', 'Unlimited Posts', 'Full SEO Auditor', 'Competitor Tracker', 'Public Store Pages', 'Priority Support'],
-    cta: 'Get Started Now', highlight: true,
+    features: ['Up to 3 Locations', '200 AI Reply Suggestions/mo', 'Unlimited Everything', '✅ Publish directly to Google', 'Full SEO Auditor', 'Competitor Tracker', 'Priority Support'],
+    cta: 'Get Growth Plan', highlight: true, planKey: 'GROWTH',
   },
   {
     name: 'Agency', price: '₹3,999', period: '/month', description: 'For agencies & franchises',
-    features: ['Unlimited Locations', 'White-label Dashboard', 'All Growth Features', 'Bulk Reports Export', 'Dedicated Manager', 'Custom API Access'],
-    cta: 'Contact Sales', highlight: false,
+    features: ['Unlimited Locations', 'Unlimited AI Replies', 'White-label Dashboard', '✅ Publish directly to Google', 'Bulk Reports Export', 'Dedicated Manager', 'Custom API Access'],
+    cta: 'Contact Sales', highlight: false, planKey: 'AGENCY',
   },
 ];
 
