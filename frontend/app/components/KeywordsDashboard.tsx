@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Plus, Trash2, Loader, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Plus, Trash2, Loader, Target, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Keyword {
   id: string;
@@ -16,6 +16,8 @@ interface Keyword {
   clickThroughRate: number;
   keywordType: string;
   difficulty: string;
+  description?: string; // AI-generated keyword strategy
+  descriptionGeneratedAt?: string; // When description was generated
 }
 
 interface Analytics {
@@ -34,6 +36,7 @@ export default function KeywordsDashboard({ locationId }: { locationId: string }
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [expandedKeyword, setExpandedKeyword] = useState<string | null>(null); // Track which keyword description is expanded
   const [newKeyword, setNewKeyword] = useState({
     keyword: '',
     keywordType: 'LOCAL',
@@ -240,24 +243,15 @@ export default function KeywordsDashboard({ locationId }: { locationId: string }
           <p className="text-gray-600">No keywords tracked yet. Add your first keyword!</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-bold text-gray-900">Keyword</th>
-                <th className="text-center py-3 px-4 font-bold text-gray-900">Rank</th>
-                <th className="text-center py-3 px-4 font-bold text-gray-900">Change</th>
-                <th className="text-center py-3 px-4 font-bold text-gray-900">Volume</th>
-                <th className="text-center py-3 px-4 font-bold text-gray-900">Clicks</th>
-                <th className="text-center py-3 px-4 font-bold text-gray-900">CTR</th>
-                <th className="text-center py-3 px-4 font-bold text-gray-900">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedKeywords.map((keyword) => (
-                <tr key={keyword.id} className="border-b border-gray-200 hover:bg-gray-50 transition">
-                  <td className="py-4 px-4">
-                    <div>
+        <div className="space-y-4">
+          {sortedKeywords.map((keyword) => (
+            <div key={keyword.id} className="border border-gray-200 rounded-lg overflow-hidden">
+              {/* Keyword Row */}
+              <div className="bg-white hover:bg-gray-50 transition px-4 py-3 flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-4">
+                    {/* Keyword Name */}
+                    <div className="flex-1">
                       <p className="font-medium text-gray-900">{keyword.keyword}</p>
                       <div className="flex gap-2 mt-1">
                         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
@@ -265,45 +259,98 @@ export default function KeywordsDashboard({ locationId }: { locationId: string }
                         </span>
                       </div>
                     </div>
-                  </td>
-                  <td className="py-4 px-4 text-center">
-                    <span className={`inline-block px-3 py-1 rounded font-bold text-sm ${getRankBadgeColor(keyword.currentRank)}`}>
-                      {getRankLabel(keyword.currentRank)}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      {getTrendIcon(keyword.rankTrend)}
-                      {keyword.rankChange ? (
-                        <span className={keyword.rankChange < 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
-                          {Math.abs(keyword.rankChange)}
-                        </span>
-                      ) : (
-                        <span className="text-gray-500">—</span>
-                      )}
+
+                    {/* Rank Badge */}
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500 mb-1">Rank</p>
+                      <span className={`inline-block px-3 py-1 rounded font-bold text-sm ${getRankBadgeColor(keyword.currentRank)}`}>
+                        {getRankLabel(keyword.currentRank)}
+                      </span>
                     </div>
-                  </td>
-                  <td className="py-4 px-4 text-center">
-                    <p className="font-medium text-gray-900">{keyword.monthlySearchVolume}</p>
-                  </td>
-                  <td className="py-4 px-4 text-center">
-                    <p className="font-medium text-gray-900">{keyword.clicks}</p>
-                  </td>
-                  <td className="py-4 px-4 text-center">
-                    <p className="font-medium text-gray-900">{keyword.clickThroughRate.toFixed(1)}%</p>
-                  </td>
-                  <td className="py-4 px-4 text-center">
+
+                    {/* Trend */}
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500 mb-1">Trend</p>
+                      <div className="flex items-center justify-center gap-1">
+                        {getTrendIcon(keyword.rankTrend)}
+                        {keyword.rankChange ? (
+                          <span className={keyword.rankChange < 0 ? 'text-green-600 font-medium text-sm' : 'text-red-600 font-medium text-sm'}>
+                            {Math.abs(keyword.rankChange)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-500">—</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Volume */}
+                    <div className="text-center min-w-20">
+                      <p className="text-xs text-gray-500 mb-1">Volume</p>
+                      <p className="font-medium text-gray-900">{keyword.monthlySearchVolume}</p>
+                    </div>
+
+                    {/* Clicks */}
+                    <div className="text-center min-w-20">
+                      <p className="text-xs text-gray-500 mb-1">Clicks</p>
+                      <p className="font-medium text-gray-900">{keyword.clicks}</p>
+                    </div>
+
+                    {/* CTR */}
+                    <div className="text-center min-w-20">
+                      <p className="text-xs text-gray-500 mb-1">CTR</p>
+                      <p className="font-medium text-gray-900">{keyword.clickThroughRate.toFixed(1)}%</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 ml-4">
+                  {keyword.description && (
                     <button
-                      onClick={() => deleteKeyword(keyword.id)}
-                      className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 transition"
+                      onClick={() => setExpandedKeyword(expandedKeyword === keyword.id ? null : keyword.id)}
+                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition px-3 py-1 hover:bg-blue-50 rounded"
+                      title="View keyword strategy"
                     >
-                      <Trash2 size={16} />
+                      {expandedKeyword === keyword.id ? (
+                        <ChevronUp size={18} />
+                      ) : (
+                        <ChevronDown size={18} />
+                      )}
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  )}
+                  <button
+                    onClick={() => deleteKeyword(keyword.id)}
+                    className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 transition px-3 py-1 hover:bg-red-50 rounded"
+                    title="Remove keyword"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Expanded Description Section */}
+              {expandedKeyword === keyword.id && keyword.description && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-gray-200 px-6 py-4">
+                  <div className="max-w-4xl">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-1 h-6 bg-blue-500 rounded"></div>
+                      <h4 className="font-bold text-gray-900 text-lg">📋 Keyword Strategy</h4>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+                      <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                        {keyword.description}
+                      </p>
+                    </div>
+                    {keyword.descriptionGeneratedAt && (
+                      <p className="text-xs text-gray-500 mt-3">
+                        Strategy generated: {new Date(keyword.descriptionGeneratedAt).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
