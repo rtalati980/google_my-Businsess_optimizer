@@ -17,11 +17,11 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://bizlocalpilot.ai"),
   title: {
-    default: "BizLocalPilot AI — Grow Your Business on Google Maps with AI",
+    default: "BizLocalPilot AI — #1 Google Business Profile AI Tool | Rank Higher on Google Maps",
     template: "%s | BizLocalPilot AI",
   },
   description:
-    "India's #1 AI-powered Google Business Profile optimizer. Auto-reply to reviews, generate SEO posts, audit your profile, track competitors, and rank higher on Google Maps — all on autopilot.",
+    "India's #1 AI-powered Google Business Profile optimizer. Auto-reply to reviews, generate SEO posts, audit your profile, track competitors, and rank higher on Google Maps — all powered by Google Gemini AI. Free plan forever.",
   keywords: [
     "Google Business Profile management",
     "Google My Business AI India",
@@ -31,34 +31,43 @@ export const metadata: Metadata = {
     "GMB post scheduler",
     "business profile optimizer",
     "local business SEO",
-    "competitor tracking",
+    "competitor tracking Google Maps",
+    "how to rank higher on Google Maps",
     "BizLocalPilot",
+    "BizLocalPilot AI",
+    "Gemini AI for business",
+    "AI tool for local businesses India",
   ],
-  authors: [{ name: "BizLocalPilot AI" }],
+  authors: [{ name: "BizLocalPilot AI", url: "https://bizlocalpilot.ai" }],
   creator: "BizLocalPilot AI",
   publisher: "BizLocalPilot AI",
+  category: "Technology",
+  classification: "Business Software",
   openGraph: {
     type: "website",
     locale: "en_IN",
     url: "https://bizlocalpilot.ai",
-    title: "BizLocalPilot AI — Grow Your Business on Google Maps with AI",
+    title: "BizLocalPilot AI — Rank Higher on Google Maps with Gemini AI",
     description:
-      "Auto-reply to reviews, generate SEO posts, audit your profile, and rank higher on Google Maps. Built for Indian businesses.",
+      "Auto-reply to reviews, generate SEO posts, audit your profile, and rank higher on Google Maps. Built for Indian restaurants, salons, clinics & shops. Free plan forever.",
     siteName: "BizLocalPilot AI",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "BizLocalPilot AI Dashboard",
+        alt: "BizLocalPilot AI — AI-powered Google Business Profile management for Indian businesses",
+        type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
+    site: "@bizlocalpilot",
+    creator: "@bizlocalpilot",
     title: "BizLocalPilot AI — Rank Higher on Google Maps",
     description:
-      "AI-powered Google Business Profile management for Indian businesses. Reviews, posts, SEO audits, competitor tracking — all automated.",
+      "AI-powered Google Business Profile management for Indian businesses. Reviews, posts, SEO audits, competitor tracking — all automated. Free plan forever.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -75,6 +84,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://bizlocalpilot.ai",
   },
+  verification: {
+    // Add your actual verification codes when you get them:
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
+    // bing: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "",
+  },
 };
 
 // JSON-LD Structured Data
@@ -86,38 +100,74 @@ const jsonLd = {
       name: "BizLocalPilot AI",
       applicationCategory: "BusinessApplication",
       description:
-        "India's #1 AI-powered SaaS platform for local businesses to optimize Google Business Profiles, auto-reply to reviews, generate SEO posts, and track competitor rankings.",
-      operatingSystem: "Web",
+        "India's #1 AI-powered SaaS platform for local businesses to optimize Google Business Profiles, auto-reply to reviews, generate SEO posts, and track competitor rankings on Google Maps.",
+      operatingSystem: "Web Browser",
       url: "https://bizlocalpilot.ai",
-      offers: {
-        "@type": "Offer",
-        price: "499",
-        priceCurrency: "INR",
-        priceValidUntil: "2027-12-31",
-        availability: "https://schema.org/InStock",
-      },
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.9",
-        reviewCount: "250",
-      },
+      screenshot: "https://bizlocalpilot.ai/og-image.png",
       featureList: [
         "AI Review Reply Generator",
         "Google Posts AI Scheduler",
-        "Business Profile Audit",
+        "Business Profile SEO Audit",
         "Local SEO Optimizer",
         "Competitor Analysis",
         "Festival Content Generator",
-        "Multi-language Support",
+        "Multi-language Support (Hindi, Tamil, Telugu, Kannada)",
         "Performance Analytics",
+        "Custom AI Image Generation",
+        "Multi-location Dashboard",
       ],
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Free Plan",
+          price: "0",
+          priceCurrency: "INR",
+          availability: "https://schema.org/InStock",
+        },
+        {
+          "@type": "Offer",
+          name: "Starter Plan",
+          price: "499",
+          priceCurrency: "INR",
+          priceValidUntil: "2027-12-31",
+          availability: "https://schema.org/InStock",
+        },
+        {
+          "@type": "Offer",
+          name: "Growth Plan",
+          price: "1499",
+          priceCurrency: "INR",
+          priceValidUntil: "2027-12-31",
+          availability: "https://schema.org/InStock",
+        },
+        {
+          "@type": "Offer",
+          name: "Agency Plan",
+          price: "3999",
+          priceCurrency: "INR",
+          priceValidUntil: "2027-12-31",
+          availability: "https://schema.org/InStock",
+        },
+      ],
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.9",
+        bestRating: "5",
+        reviewCount: "120",
+      },
     },
     {
       "@type": "Organization",
       name: "BizLocalPilot AI",
       url: "https://bizlocalpilot.ai",
+      logo: "https://bizlocalpilot.ai/og-image.png",
       description:
         "Helping Indian businesses rank higher on Google Maps with AI-powered profile optimization.",
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        email: "support@bizlocalpilot.ai",
+      },
     },
     {
       "@type": "WebSite",
