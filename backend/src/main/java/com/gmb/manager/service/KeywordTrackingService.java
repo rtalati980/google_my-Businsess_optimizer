@@ -1,8 +1,11 @@
 package com.gmb.manager.service;
 
 import com.gmb.manager.entity.KeywordTracking;
+import com.gmb.manager.entity.Location;
 import com.gmb.manager.repository.KeywordTrackingRepository;
+import com.gmb.manager.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,9 +14,12 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class KeywordTrackingService {
 
     private final KeywordTrackingRepository keywordRepository;
+    private final LocationRepository locationRepository;
+    private final AiService aiService;
 
     public KeywordTracking addKeyword(String locationId, String keyword, String keywordType, String intent) {
         KeywordTracking existing = keywordRepository.findByLocationIdAndKeyword(locationId, keyword);
@@ -21,11 +27,26 @@ public class KeywordTrackingService {
             throw new IllegalArgumentException("Keyword already being tracked");
         }
 
+        // Get location for business context
+        Location location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new IllegalArgumentException("Location not found"));
+
+        // Generate AI keyword description (no rank yet)
+        String description = aiService.generateKeywordDescription(
+                keyword,
+                location.getName(),
+                location.getCategory() != null ? location.getCategory() : "Business",
+                null,  // No rank yet
+                0      // Volume unknown initially
+        );
+
         KeywordTracking tracking = KeywordTracking.builder()
                 .locationId(locationId)
                 .keyword(keyword)
                 .keywordType(keywordType)
                 .intent(intent)
+                .description(description) // ← AI-generated description
+                .descriptionGeneratedAt(LocalDateTime.now()) // ← Track when generated
                 .currentRank(null)
                 .previousRank(null)
                 .monthlySearchVolume(0)
@@ -42,6 +63,7 @@ public class KeywordTrackingService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
+        log.info("Added keyword '{}' with AI-generated description for location {}", keyword, locationId);
         return keywordRepository.save(tracking);
     }
 
@@ -76,6 +98,27 @@ public class KeywordTrackingService {
                 .impressions(tracking.getImpressions())
                 .clicks(tracking.getClicks())
                 .build());
+
+        // Regenerate description with updated rank information
+        try {
+            Location location = locationRepository.findById(tracking.getLocationId())
+                    .orElseThrow(() -> new IllegalArgumentException("Location not found"));
+
+            String updatedDescription = aiService.generateKeywordDescription(
+                    tracking.getKeyword(),
+                    location.getName(),
+                    location.getCategory() != null ? location.getCategory() : "Business",
+                    newRank,  // ← Now include current rank for better insights
+                    tracking.getMonthlySearchVolume()
+            );
+
+            tracking.setDescription(updatedDescription); // ← Update with new insights
+            tracking.setDescriptionGeneratedAt(LocalDateTime.now());
+            log.info("Updated keyword description for '{}' with new rank #{}", tracking.getKeyword(), newRank);
+        } catch (Exception e) {
+            log.warn("Failed to regenerate description for keyword '{}': {}", tracking.getKeyword(), e.getMessage());
+            // Continue even if description generation fails - don't break rank updates
+        }
 
         return keywordRepository.save(tracking);
     }

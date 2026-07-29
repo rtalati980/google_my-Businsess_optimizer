@@ -427,4 +427,55 @@ public class AiService {
         String prompt = String.format("As a helpful business owner, provide a professional, concise answer to this customer question: '%s'. Keep it under 300 characters and be friendly yet informative.", question);
         return generateContent("You are helping a business owner respond to customer questions on Google Business Profile. Be helpful, professional, and concise.", prompt);
     }
+
+    /**
+     * Generate keyword description with strategy (CRITICAL BUSINESS VALUE)
+     * Explains WHY this keyword matters, search intent, ranking opportunity, and action items
+     * Enforces 360-word maximum as specified
+     */
+    public String generateKeywordDescription(String keyword,
+                                            String businessName,
+                                            String category,
+                                            Integer currentRank,
+                                            Integer monthlySearchVolume) {
+
+        String rankInfo = currentRank != null ? "#" + currentRank : "Not ranked";
+        String volumeInfo = monthlySearchVolume != null ? monthlySearchVolume + " monthly searches" : "Volume unknown";
+
+        String prompt = String.format(
+            "You are a local SEO expert helping a %s business (%s) understand keyword opportunity.\n\n" +
+            "Keyword: %s\n" +
+            "Current Rank: %s\n" +
+            "Monthly Searches: %s\n\n" +
+            "Generate a 250-300 word keyword strategy description that includes:\n\n" +
+            "1. WHAT: Explain what this keyword means (search intent)\n" +
+            "2. WHY: Why it matters specifically for this %s business\n" +
+            "3. POSITION: Analyze their current rank (#%s)\n" +
+            "4. OPPORTUNITY: Business value (potential clicks, revenue impact)\n" +
+            "5. ACTION: 3-4 specific, actionable steps to rank higher\n" +
+            "6. TIMELINE: Realistic timeframe to improve ranking\n\n" +
+            "Format: Use bullet points where appropriate. Include relevant emoji. " +
+            "Be encouraging but realistic. Make it personal to %s, not generic.\n" +
+            "MAXIMUM 360 WORDS. Make every word count.",
+            category, businessName, keyword, rankInfo, volumeInfo,
+            category, currentRank != null ? currentRank : 0, businessName
+        );
+
+        String systemInstruction =
+            "You are an expert local SEO consultant helping small business owners understand their keyword rankings " +
+            "and optimization opportunities. Provide specific, actionable insights that explain business value clearly. " +
+            "Always include search intent analysis, current position assessment, and concrete action items. " +
+            "Keep responses under 360 words. Use professional but friendly language with relevant emoji. " +
+            "Focus on business results, not technical SEO jargon.";
+
+        String description = generateContent(systemInstruction, prompt);
+
+        // Enforce 360 word limit (approximate: ~60 chars per word)
+        if (description.length() > 2160) { // 360 words * 6 chars average
+            description = description.substring(0, 2160) + "...";
+            log.warn("Keyword description truncated from {} to 360 words", description.length());
+        }
+
+        return description;
+    }
 }
