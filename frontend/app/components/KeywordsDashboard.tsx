@@ -328,24 +328,42 @@ export default function KeywordsDashboard({ locationId }: { locationId: string }
                 </div>
               </div>
 
-              {/* Expanded Description Section */}
+              {/* Expanded Description Section - 700-720 words */}
               {expandedKeyword === keyword.id && keyword.description && (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-gray-200 px-6 py-4">
-                  <div className="max-w-4xl">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-1 h-6 bg-blue-500 rounded"></div>
-                      <h4 className="font-bold text-gray-900 text-lg">📋 Keyword Strategy</h4>
+                  <div className="max-w-5xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-6 bg-blue-500 rounded"></div>
+                        <h4 className="font-bold text-gray-900 text-lg">📋 Comprehensive Keyword Strategy</h4>
+                      </div>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                        ~720 words
+                      </span>
                     </div>
-                    <div className="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
-                      <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
-                        {keyword.description}
+
+                    <div className="bg-white rounded-lg p-6 shadow-sm border border-blue-100 max-h-96 overflow-y-auto">
+                      <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                        {keyword.description.split('\n').map((paragraph, idx) => (
+                          paragraph.trim() ? (
+                            <p key={idx} className="mb-3 text-gray-700">
+                              {paragraph}
+                            </p>
+                          ) : null
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between">
+                      {keyword.descriptionGeneratedAt && (
+                        <p className="text-xs text-gray-500">
+                          📅 Generated: {new Date(keyword.descriptionGeneratedAt).toLocaleDateString()}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        💡 Use these insights to rank higher and attract more customers
                       </p>
                     </div>
-                    {keyword.descriptionGeneratedAt && (
-                      <p className="text-xs text-gray-500 mt-3">
-                        Strategy generated: {new Date(keyword.descriptionGeneratedAt).toLocaleDateString()}
-                      </p>
-                    )}
                   </div>
                 </div>
               )}

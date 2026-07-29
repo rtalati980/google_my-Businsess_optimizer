@@ -429,9 +429,20 @@ public class AiService {
     }
 
     /**
-     * Generate keyword description with strategy (CRITICAL BUSINESS VALUE)
-     * Explains WHY this keyword matters, search intent, ranking opportunity, and action items
-     * Enforces 360-word maximum as specified
+     * Generate keyword description with comprehensive strategy (CRITICAL BUSINESS VALUE)
+     * Explains WHY this keyword matters, search intent, ranking opportunity, and detailed action items
+     * Enforces 700-720 word limit for maximum SEO content value
+     *
+     * 720 words provides:
+     * - Comprehensive keyword analysis
+     * - Detailed search intent breakdown
+     * - Competitive positioning
+     * - Specific ranking strategies (5-7 action items)
+     * - Content ideas tied to keyword
+     * - Expected results and timeline
+     * - Advanced SEO tips
+     *
+     * This content is SEO-optimized and helps customers rank higher
      */
     public String generateKeywordDescription(String keyword,
                                             String businessName,
@@ -441,39 +452,85 @@ public class AiService {
 
         String rankInfo = currentRank != null ? "#" + currentRank : "Not ranked";
         String volumeInfo = monthlySearchVolume != null ? monthlySearchVolume + " monthly searches" : "Volume unknown";
+        String competitiveLevel = monthlySearchVolume != null && monthlySearchVolume > 1000 ? "HIGH" :
+                                  monthlySearchVolume != null && monthlySearchVolume > 500 ? "MEDIUM" : "LOW";
 
         String prompt = String.format(
-            "You are a local SEO expert helping a %s business (%s) understand keyword opportunity.\n\n" +
+            "You are a world-class local SEO expert and content strategist specializing in helping %s businesses " +
+            "dominate their local search results and rank higher on Google Maps and Search.\n\n" +
+            "BUSINESS CONTEXT:\n" +
+            "Business Name: %s\n" +
+            "Category: %s\n" +
             "Keyword: %s\n" +
             "Current Rank: %s\n" +
-            "Monthly Searches: %s\n\n" +
-            "Generate a 250-300 word keyword strategy description that includes:\n\n" +
-            "1. WHAT: Explain what this keyword means (search intent)\n" +
-            "2. WHY: Why it matters specifically for this %s business\n" +
-            "3. POSITION: Analyze their current rank (#%s)\n" +
-            "4. OPPORTUNITY: Business value (potential clicks, revenue impact)\n" +
-            "5. ACTION: 3-4 specific, actionable steps to rank higher\n" +
-            "6. TIMELINE: Realistic timeframe to improve ranking\n\n" +
-            "Format: Use bullet points where appropriate. Include relevant emoji. " +
-            "Be encouraging but realistic. Make it personal to %s, not generic.\n" +
-            "MAXIMUM 360 WORDS. Make every word count.",
-            category, businessName, keyword, rankInfo, volumeInfo,
-            category, currentRank != null ? currentRank : 0, businessName
+            "Monthly Searches: %s\n" +
+            "Competition Level: %s\n\n" +
+            "Generate a COMPREHENSIVE 700-720 word keyword strategy guide that includes:\n\n" +
+            "1. KEYWORD ANALYSIS (100-120 words)\n" +
+            "   - What this keyword means\n" +
+            "   - Search intent type (transactional/informational/navigational)\n" +
+            "   - Why customers search for this\n" +
+            "   - Business relevance for %s\n\n" +
+            "2. OPPORTUNITY ASSESSMENT (100-120 words)\n" +
+            "   - Current ranking position analysis (#%s)\n" +
+            "   - Monthly search volume significance\n" +
+            "   - Potential monthly clicks if ranked #1\n" +
+            "   - Revenue impact calculation\n" +
+            "   - Competitive difficulty level\n\n" +
+            "3. DETAILED RANKING STRATEGY (250-300 words)\n" +
+            "   - 5-7 specific, actionable steps to rank higher\n" +
+            "   - Content ideas tied to this keyword\n" +
+            "   - Photo/video ideas\n" +
+            "   - Q&A answers to publish\n" +
+            "   - Posts to create\n" +
+            "   - Business profile optimizations\n" +
+            "   - Local citation improvements\n\n" +
+            "4. EXPECTED RESULTS & TIMELINE (80-100 words)\n" +
+            "   - Realistic timeline to rank in top 10\n" +
+            "   - Timeline to rank in top 3\n" +
+            "   - Timeline to rank #1\n" +
+            "   - Potential traffic increase\n" +
+            "   - ROI expectations\n\n" +
+            "Format Requirements:\n" +
+            "- Use bullet points and subheadings for clarity\n" +
+            "- Include relevant emoji for visual interest\n" +
+            "- Be specific and actionable (not generic)\n" +
+            "- Make it personal to %s (use business name)\n" +
+            "- Focus on business results, not technical jargon\n" +
+            "- Use professional but friendly, encouraging tone\n" +
+            "- STRICTLY 700-720 WORDS (not more, not less)\n" +
+            "- Make every word count for SEO value\n\n" +
+            "This content will be displayed in the app to help customers understand and act on keyword opportunities.",
+            category, businessName, category, keyword, rankInfo, volumeInfo, competitiveLevel,
+            businessName, currentRank != null ? currentRank : 0, businessName
         );
 
         String systemInstruction =
-            "You are an expert local SEO consultant helping small business owners understand their keyword rankings " +
-            "and optimization opportunities. Provide specific, actionable insights that explain business value clearly. " +
-            "Always include search intent analysis, current position assessment, and concrete action items. " +
-            "Keep responses under 360 words. Use professional but friendly language with relevant emoji. " +
-            "Focus on business results, not technical SEO jargon.";
+            "You are an expert local SEO consultant, content strategist, and digital marketing advisor. " +
+            "Your goal is to help small business owners understand their keyword opportunities and provide " +
+            "a complete, actionable strategy to rank higher on Google. " +
+            "\n" +
+            "Requirements:\n" +
+            "- Provide specific, detailed, actionable insights (not generic advice)\n" +
+            "- Always include search intent analysis\n" +
+            "- Analyze current position and opportunity\n" +
+            "- Provide 5-7 concrete action items with details\n" +
+            "- Include content and photo ideas tied to the keyword\n" +
+            "- Give realistic timelines for ranking improvements\n" +
+            "- Calculate potential business value (clicks, revenue)\n" +
+            "- Use professional but friendly language\n" +
+            "- Make it personal to their specific business\n" +
+            "- MUST BE EXACTLY 700-720 WORDS\n" +
+            "- Optimize for SEO value with keyword mentions\n" +
+            "- Focus on business results, not technical jargon";
 
         String description = generateContent(systemInstruction, prompt);
 
-        // Enforce 360 word limit (approximate: ~60 chars per word)
-        if (description.length() > 2160) { // 360 words * 6 chars average
-            description = description.substring(0, 2160) + "...";
-            log.warn("Keyword description truncated from {} to 360 words", description.length());
+        // Enforce 720 word limit (approximate: ~5-6 chars per word average in content)
+        // 720 words * 5.5 chars = 3960 chars
+        if (description.length() > 4200) { // Some buffer for long words
+            description = description.substring(0, 4000) + "...";
+            log.warn("Keyword description truncated to ~720 words (from {} chars)", description.length());
         }
 
         return description;

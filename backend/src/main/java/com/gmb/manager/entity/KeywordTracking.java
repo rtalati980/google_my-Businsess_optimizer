@@ -60,10 +60,12 @@ public class KeywordTracking {
     private List<RankingHistory> rankingHistory;
 
     // AI-generated keyword description & strategy (CRITICAL FOR BUSINESS VALUE)
-    private String description; // 250-360 word AI-generated keyword strategy
-    private String optimizationStrategy; // Specific action items to rank higher
-    private LocalDateTime descriptionGeneratedAt;
-    private Long descriptionTokensUsed; // For tracking API usage
+    private String description; // 700-720 word comprehensive AI-generated keyword strategy
+                                // Includes: keyword analysis, opportunity assessment, ranking strategy,
+                                // detailed action items, content ideas, timeline, expected results
+    private String optimizationStrategy; // Specific action items to rank higher (extracted from description)
+    private LocalDateTime descriptionGeneratedAt; // When description was generated
+    private Long descriptionTokensUsed; // For tracking API usage and cost
 
     @Data
     @Builder
