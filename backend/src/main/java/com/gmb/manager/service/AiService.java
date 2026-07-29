@@ -412,4 +412,19 @@ public class AiService {
                 "  \"growth_opportunities\": \"Leverage the recent surge in Direction Requests by offering a weekend-starter discount or expanding active hours for " + biz + ".\"\n" +
                 "}";
     }
+
+    public String generatePhotoCaption(String photoTitle, String category) {
+        String prompt = String.format("Generate a compelling, SEO-friendly caption for a %s photo titled '%s'. Make it engaging and include relevant hashtags. Keep it under 150 characters.", category, photoTitle);
+        return generateContent("You are an expert social media marketing specialist for Google Business Profile optimization.", prompt);
+    }
+
+    public String generatePhotoTags(String title, String description, String category) {
+        String prompt = String.format("Generate relevant business tags/hashtags for a %s photo. Title: %s. Description: %s. Provide 5-7 relevant tags.", category, title, description);
+        return generateContent("You are an expert at SEO and social media tagging.", prompt);
+    }
+
+    public String generateQuestionAnswer(String question, String locationId) {
+        String prompt = String.format("As a helpful business owner, provide a professional, concise answer to this customer question: '%s'. Keep it under 300 characters and be friendly yet informative.", question);
+        return generateContent("You are helping a business owner respond to customer questions on Google Business Profile. Be helpful, professional, and concise.", prompt);
+    }
 }
