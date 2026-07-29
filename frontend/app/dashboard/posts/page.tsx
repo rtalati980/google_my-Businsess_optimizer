@@ -4,9 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { useDashboard } from '../layout';
 import { apiService } from '@/lib/api';
 import { Post } from '@/lib/types';
+import UpgradeModal from '@/components/UpgradeModal';
 import {
   Sparkles, AlertCircle, Loader2, Send, Edit3, Check, Clock,
-  Image as ImageIcon, Zap, Target, TrendingUp, Copy, Trash2
+  Image as ImageIcon, Zap, Target, TrendingUp, Copy, Trash2,
+  Lock, Wand2, PenLine
 } from 'lucide-react';
 
 interface PostTemplate {
@@ -23,6 +25,9 @@ export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [postType, setPostType] = useState('WEEKLY');
   const [topic, setTopic] = useState('');
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [imagePrompt, setImagePrompt] = useState('');
+  const [useCustomPrompt, setUseCustomPrompt] = useState(false);
   const [activeDraft, setActiveDraft] = useState<Post | null>(null);
   const [draftContent, setDraftContent] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,6 +38,9 @@ export default function PostsPage() {
   const [tabActive, setTabActive] = useState('create');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [planSummary, setPlanSummary] = useState<any>(null);
+  const [aiRepliesUsed, setAiRepliesUsed] = useState(0);
 
   const postTemplates: PostTemplate[] = [
     {
@@ -84,22 +92,38 @@ export default function PostsPage() {
     }
   };
 
+  const fetchPlanSummary = async () => {
+    try {
+      const res = await fetch('/api/subscriptions/plan-summary', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('gmb_auth_token')}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPlanSummary(data);
+      }
+    } catch (e) {
+      console.error('Could not fetch plan summary:', e);
+    }
+  };
+
   useEffect(() => {
     fetchPosts();
+    fetchPlanSummary();
     setActiveDraft(null);
     setDraftContent('');
   }, [selectedLocation]);
 
-  // Dynamic AI Image Text-Overlay Generator
-  const generateBrandedImage = (topicText: string) => {
+  // Dynamic AI Image Generator — uses user's imagePrompt if provided
+  const generateBrandedImage = (topicText: string, customImagePrompt?: string) => {
     if (!selectedLocation) return '';
     const bizName = selectedLocation.name;
     const bizCategory = selectedLocation.category || 'local business';
-    const cleanTopic = (topicText || 'Special Offer').replace(/["']/g, '');
     const randomSeed = Math.floor(Math.random() * 1000000);
-    const prompt = encodeURIComponent(
-      `A professional marketing banner for "${bizName}" (${bizCategory}). The banner features the text "${cleanTopic}" in bold, modern, clean typography. High contrast, premium graphic design, corporate branding, social media template style, 4k resolution`
-    );
+    // User's custom image prompt takes priority
+    const promptText = customImagePrompt && customImagePrompt.trim()
+      ? `${customImagePrompt.trim()} — for ${bizName} (${bizCategory}). Professional marketing banner, 4k, premium design`
+      : `A professional marketing banner for "${bizName}" (${bizCategory}). The banner features the text "${(topicText || 'Special Offer').replace(/["']/g, '')}" in bold, modern, clean typography. High contrast, premium graphic design, social media template style, 4k resolution`;
+    const prompt = encodeURIComponent(promptText);
     return `https://image.pollinations.ai/prompt/${prompt}?width=600&height=400&nologo=true&seed=${randomSeed}`;
   };
 
@@ -112,9 +136,14 @@ export default function PostsPage() {
 
     try {
       setGenerating(true);
-      const post = await apiService.generatePost(selectedLocation.id, postType, topic, includeImage);
+      // Pass customPrompt to backend if user typed one
+      const promptToSend = useCustomPrompt ? customPrompt : undefined;
+      const post = await apiService.generatePost(selectedLocation.id, postType, topic, includeImage, promptToSend);
       if (includeImage) {
-        post.mediaUrl = generateBrandedImage(topic || post.topic || 'Special Announcement');
+        post.mediaUrl = generateBrandedImage(
+          topic || post.topic || 'Special Announcement',
+          imagePrompt
+        );
       }
       setActiveDraft(post);
       setDraftContent(post.content);
@@ -123,7 +152,12 @@ export default function PostsPage() {
       setSuccessMsg('✨ Post generated! Review and customize it below.');
     } catch (err: any) {
       console.error('Error generating post:', err);
-      setErrorMsg(err.response?.data?.message || 'Failed to generate post. Please try again.');
+      const msg = err.response?.data?.message || '';
+      if (msg.startsWith('UPGRADE_REQUIRED')) {
+        setShowUpgradeModal(true);
+      } else {
+        setErrorMsg(msg || 'Failed to generate post. Please try again.');
+      }
     } finally {
       setGenerating(false);
     }
@@ -147,6 +181,13 @@ export default function PostsPage() {
   };
 
   const handlePublishPost = async (postId: string, isFromDraft: boolean = false) => {
+    // FREE plan: show upgrade modal instead of publishing
+    const canPublish = planSummary?.canPublish;
+    if (canPublish === false) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     try {
       setPublishing(true);
       setErrorMsg('');
@@ -176,13 +217,19 @@ export default function PostsPage() {
     } catch (err: any) {
       console.error('Error publishing post:', err);
       const statusCode = err.response?.status;
-      let message = 'Failed to publish post';
+      const msg = err.response?.data?.message || '';
 
+      if (statusCode === 402 || msg.startsWith('UPGRADE_REQUIRED')) {
+        setShowUpgradeModal(true);
+        return;
+      }
+
+      let message = 'Failed to publish post';
       if (statusCode === 400) message = 'Invalid post content. Please check and try again.';
       else if (statusCode === 401) message = 'Authentication failed. Please reconnect your account.';
       else if (statusCode === 403) message = 'You don\'t have permission to publish this post.';
       else if (statusCode === 500) message = 'Server error. Please try again later.';
-      else message = err.response?.data?.message || message;
+      else message = msg || message;
 
       setErrorMsg(message);
     } finally {
@@ -212,7 +259,7 @@ export default function PostsPage() {
   const handleAiImageGeneration = () => {
     if (!selectedLocation || !activeDraft) return;
     const topicText = topic || activeDraft.topic || 'Special Announcement';
-    const generatedUrl = generateBrandedImage(topicText);
+    const generatedUrl = generateBrandedImage(topicText, imagePrompt);
     setActiveDraft({ ...activeDraft, mediaUrl: generatedUrl });
   };
 
@@ -228,12 +275,46 @@ export default function PostsPage() {
     );
   }
 
-  const currentTemplate = postTemplates.find(t => t.value === postType);
-  const publishedCount = posts.filter(p => p.status === 'PUBLISHED').length;
-  const draftCount = posts.filter(p => p.status === 'DRAFT').length;
+  const isFree = planSummary && !planSummary.canPublish;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureName="Publishing to Google"
+        recommendedPlan="STARTER"
+      />
+
+      {/* FREE plan banner */}
+      {isFree && (
+        <div
+          className="flex items-center justify-between p-4 rounded-2xl border"
+          style={{
+            background: 'linear-gradient(135deg, #f59e0b15, #f97316 10%)',
+            borderColor: '#f59e0b40',
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <Lock className="h-5 w-5 text-amber-500" />
+            <div>
+              <div className="font-bold text-foreground text-sm">You're on the Free Plan</div>
+              <div className="text-xs text-muted-foreground">
+                Generate unlimited content — upgrade to <strong>Starter ₹499/mo</strong> to publish directly to Google.
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowUpgradeModal(true)}
+            className="px-4 py-2 rounded-xl text-sm font-bold text-white"
+            style={{ background: '#f59e0b' }}
+          >
+            Upgrade ↗
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 mb-2">
@@ -254,16 +335,18 @@ export default function PostsPage() {
           <div className="text-xs text-muted-foreground mt-1">Total Campaigns</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
-          <div className="text-2xl font-black text-emerald-500">{publishedCount}</div>
+          <div className="text-2xl font-black text-emerald-500">{posts.filter(p => p.status === 'PUBLISHED').length}</div>
           <div className="text-xs text-muted-foreground mt-1">Published</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
-          <div className="text-2xl font-black text-amber-500">{draftCount}</div>
+          <div className="text-2xl font-black text-amber-500">{posts.filter(p => p.status === 'DRAFT').length}</div>
           <div className="text-xs text-muted-foreground mt-1">Drafts</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
-          <div className="text-2xl font-black text-foreground">{selectedLocation.name.split(' ').length}</div>
-          <div className="text-xs text-muted-foreground mt-1">Location Words</div>
+          <div className="text-2xl font-black" style={{ color: isFree ? '#f59e0b' : '#22c55e' }}>
+            {isFree ? 'FREE' : planSummary?.planType || '—'}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">Current Plan</div>
         </div>
       </div>
 
@@ -318,31 +401,76 @@ export default function PostsPage() {
                 </div>
               </div>
 
-              {/* Details Input */}
+              {/* Mode Toggle: Quick Details vs Full Custom Prompt */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Add Details</label>
-                <textarea
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder={`Example: ${currentTemplate?.example || 'Add specific details for your post...'}`}
-                  rows={4}
-                  className="w-full bg-background border border-border text-foreground text-sm rounded-xl p-3 focus:ring-1 focus:ring-primary focus:outline-none resize-none"
-                />
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    {useCustomPrompt ? 'Your AI Prompt' : 'Add Details'}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setUseCustomPrompt(!useCustomPrompt)}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
+                    style={{
+                      background: useCustomPrompt ? '#6366f120' : 'var(--secondary)',
+                      color: useCustomPrompt ? '#6366f1' : 'var(--muted-foreground)',
+                      border: useCustomPrompt ? '1px solid #6366f140' : '1px solid var(--border)'
+                    }}
+                  >
+                    <Wand2 className="h-3 w-3" />
+                    {useCustomPrompt ? 'Custom Prompt ON' : 'Use Custom Prompt'}
+                  </button>
+                </div>
+
+                {useCustomPrompt ? (
+                  <>
+                    <textarea
+                      value={customPrompt}
+                      onChange={(e) => setCustomPrompt(e.target.value)}
+                      placeholder="Write your own prompt, e.g: Announce our Diwali offer — 50% off all services this week. Include urgency and excitement."
+                      rows={5}
+                      className="w-full bg-background border text-foreground text-sm rounded-xl p-3 focus:ring-1 focus:outline-none resize-none"
+                      style={{ borderColor: '#6366f160', boxShadow: '0 0 0 1px #6366f110' }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      🧠 AI will write the post exactly based on your instructions.
+                    </p>
+                  </>
+                ) : (
+                  <textarea
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    placeholder={`Example: Announce a 20% weekend discount on all services`}
+                    rows={3}
+                    className="w-full bg-background border border-border text-foreground text-sm rounded-xl p-3 focus:ring-1 focus:ring-primary focus:outline-none resize-none"
+                  />
+                )}
               </div>
 
-              {/* Image Option */}
-              <label className="flex items-center gap-3 p-3 bg-secondary/40 border border-border rounded-xl cursor-pointer hover:bg-secondary/60 transition-all">
-                <input
-                  type="checkbox"
-                  checked={includeImage}
-                  onChange={(e) => setIncludeImage(e.target.checked)}
-                  className="h-4 w-4 rounded border-border bg-background accent-primary"
-                />
-                <div className="flex-1">
-                  <div className="text-sm font-semibold text-foreground">Add Featured Image</div>
-                  <div className="text-xs text-muted-foreground">Include a custom banner with your post</div>
-                </div>
-              </label>
+              {/* Image Option + Image Prompt */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 p-3 bg-secondary/40 border border-border rounded-xl cursor-pointer hover:bg-secondary/60 transition-all">
+                  <input
+                    type="checkbox"
+                    checked={includeImage}
+                    onChange={(e) => setIncludeImage(e.target.checked)}
+                    className="h-4 w-4 rounded border-border bg-background accent-primary"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-foreground">Add Featured Image</div>
+                    <div className="text-xs text-muted-foreground">AI generates a unique banner for your post</div>
+                  </div>
+                </label>
+                {includeImage && (
+                  <input
+                    type="text"
+                    value={imagePrompt}
+                    onChange={(e) => setImagePrompt(e.target.value)}
+                    placeholder="Image prompt: e.g. 'warm restaurant interior with happy customers'"
+                    className="w-full bg-background border border-border text-foreground text-xs rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-primary focus:outline-none"
+                  />
+                )}
+              </div>
 
               {/* Generate Button */}
               <button

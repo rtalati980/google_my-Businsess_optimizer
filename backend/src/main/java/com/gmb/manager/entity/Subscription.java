@@ -35,7 +35,19 @@ public class Subscription {
     private String status; // "ACTIVE", "TRIALING", "CANCELED", "PAST_DUE"
 
     @Field("plan_type")
-    private String planType; // "BASIC", "PREMIUM"
+    private String planType; // "FREE", "STARTER", "GROWTH", "AGENCY"
+
+    @Field("location_limit")
+    private Integer locationLimit; // max locations allowed (-1 = unlimited)
+
+    @Field("ai_replies_limit")
+    private Integer aiRepliesLimit; // monthly AI reply quota (-1 = unlimited)
+
+    @Field("ai_posts_limit")
+    private Integer aiPostsLimit; // monthly generated posts quota (-1 = unlimited)
+
+    @Field("can_publish")
+    private Boolean canPublish; // whether plan allows direct Google publishing
 
     @Field("current_period_end")
     private LocalDateTime currentPeriodEnd;

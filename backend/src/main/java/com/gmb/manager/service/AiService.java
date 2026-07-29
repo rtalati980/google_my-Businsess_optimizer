@@ -104,11 +104,15 @@ public class AiService {
 
         // Extract business context from the prompt
         String businessName = extractField(prompt, "Business Name:");
-        String category = extractField(prompt, "Business Category:");
+        String category    = extractField(prompt, "Business Category:");
+        String address     = extractField(prompt, "Address:");
         if (businessName == null) businessName = extractField(prompt, "business name:");
-        if (category == null) category = extractField(prompt, "category:");
+        if (businessName == null) businessName = extractField(prompt, "Name:");
+        if (category     == null) category     = extractField(prompt, "category:");
+        if (category     == null) category     = extractField(prompt, "Category:");
+        if (address      == null) address       = extractField(prompt, "Location:");
 
-        // Simulating review replies based on rating and tone
+        // 1. Review reply simulation
         if (query.contains("review") && query.contains("reply")) {
             String reviewer = "Reviewer";
             if (query.contains("reviewer:")) {
@@ -123,7 +127,7 @@ public class AiService {
             else if (query.contains("rating: 4")) rating = 4;
 
             String tone = "professional";
-            if (query.contains("friendly")) tone = "friendly";
+            if (query.contains("friendly"))    tone = "friendly";
             else if (query.contains("luxury")) tone = "luxury";
             else if (query.contains("healthcare")) tone = "healthcare";
             else if (query.contains("restaurant")) tone = "restaurant";
@@ -131,24 +135,66 @@ public class AiService {
             return generateMockReply(reviewer, rating, tone, businessName, category);
         }
 
-        // Simulating GMB post generations — NOW BUSINESS-AWARE
+        // 2. GMB Post generation — business-aware
         if (query.contains("post") && (query.contains("type:") || query.contains("post type:"))) {
             String postType = "weekly";
-            if (query.contains("weekly")) postType = "weekly";
-            else if (query.contains("festival")) postType = "festival";
+            if (query.contains("festival"))   postType = "festival";
             else if (query.contains("promotion")) postType = "promotion";
-            else if (query.contains("product")) postType = "product";
+            else if (query.contains("product"))   postType = "product";
 
             return generateMockPost(postType, businessName, category);
         }
 
-        // Simulating weekly report analysis
+        // 3. Weekly / performance report
         if (query.contains("weekly report") || query.contains("performance summary")) {
             return generateMockWeeklyReport(businessName);
         }
 
+        // 4. Growth plan / advisor (30-day plan, analyse this business, etc.)
+        if (query.contains("growth plan") || query.contains("30-day") || query.contains("analyse this local business")
+                || query.contains("growth opportunities") || (system != null && system.toLowerCase().contains("seo consultant"))) {
+            return generateMockGrowthPlan(businessName, category, address);
+        }
+
+        // 5. SEO audit JSON (seo_score, keyword_suggestions, profile_suggestions)
+        if (query.contains("seo_score") || query.contains("keyword_suggestions")
+                || query.contains("local seo audit") || query.contains("seo audit")) {
+            return generateMockSeoAuditJson(businessName, category, address);
+        }
+
+        // 6. SEO content optimizer — return enriched post instead of generic line
+        if (query.contains("optimize this gmb post") || query.contains("seo-optimized content")
+                || (query.contains("optimize") && query.contains("local search"))) {
+            // Extract the original post content between ORIGINAL POST: and BUSINESS:
+            String original = "";
+            int start = prompt.indexOf("ORIGINAL POST:");
+            int end   = prompt.indexOf("\nBUSINESS:");
+            if (start != -1 && end != -1 && end > start) {
+                original = prompt.substring(start + 14, end).trim();
+            }
+            if (original.isEmpty()) original = prompt.substring(0, Math.min(250, prompt.length()));
+            // Append category keyword and hashtag to original content
+            String cat = (category != null) ? category : "local business";
+            String biz = (businessName != null) ? businessName : "us";
+            String catTag = "#" + cat.replaceAll("\\s+", "");
+            String bizTag = "#" + biz.replaceAll("\\s+", "");
+            String enriched = original + " 🔖 " + catTag + " " + bizTag + " #LocalBusiness";
+            return enriched.length() > 300 ? enriched.substring(0, 297) + "..." : enriched;
+        }
+
+        // 7. SEO business description request
+        if (query.contains("google business profile description") || query.contains("keywords to include")
+                || (query.contains("seo") && query.contains("description"))) {
+            return generateMockDescription(businessName, category);
+        }
+
+        // 8. Generic fallback — at least personalise with business name
         String biz = (businessName != null) ? businessName : "our business";
-        return String.format("Thank you for choosing %s! We appreciate your business and feedback. If you have any questions, please don't hesitate to reach out.", biz);
+        String cat = (category != null) ? category.toLowerCase() : "services";
+        return String.format(
+                "Thank you for choosing %s! As a trusted provider of %s, we are committed to delivering exceptional quality " +
+                "and service to every customer. Visit us, call us, or check our website — our team is always ready to help. 😊",
+                biz, cat);
     }
 
     /**
@@ -223,9 +269,136 @@ public class AiService {
     private String generateMockDescription(String businessName, String category) {
         String biz = (businessName != null) ? businessName : "our local business";
         String cat = (category != null) ? category : "professional services";
+
+        // Category-aware description variations for richer simulation output
+        String catLower = cat.toLowerCase();
+        String specialLine;
+        if (catLower.contains("dental") || catLower.contains("clinic") || catLower.contains("hospital") || catLower.contains("medical")) {
+            specialLine = String.format("Our experienced healthcare team at %s uses the latest technology to ensure gentle, effective treatment. " +
+                    "We prioritise patient comfort and transparent, affordable care in every visit.", biz);
+        } else if (catLower.contains("restaurant") || catLower.contains("cafe") || catLower.contains("food") || catLower.contains("biryani")) {
+            specialLine = String.format("%s serves freshly prepared, authentic dishes crafted from locally sourced ingredients. " +
+                    "Whether dining in or ordering out, expect warm hospitality and flavours you will keep coming back for.", biz);
+        } else if (catLower.contains("salon") || catLower.contains("beauty") || catLower.contains("spa")) {
+            specialLine = String.format("At %s, our skilled stylists and therapists are dedicated to making you look and feel your absolute best. " +
+                    "We use premium products and the latest techniques tailored to each client.", biz);
+        } else if (catLower.contains("software") || catLower.contains("tech") || catLower.contains("digital") || catLower.contains("it")) {
+            specialLine = String.format("%s delivers cutting-edge technology solutions designed to grow your business. " +
+                    "From custom software development to digital marketing, our expert team transforms your vision into results.", biz);
+        } else if (catLower.contains("real estate") || catLower.contains("property")) {
+            specialLine = String.format("%s helps you find, buy, or sell properties with confidence. " +
+                    "Our experienced agents provide transparent guidance and personalised service throughout your real estate journey.", biz);
+        } else if (catLower.contains("gym") || catLower.contains("fitness") || catLower.contains("yoga")) {
+            specialLine = String.format("%s is your community fitness hub offering expert trainers, modern equipment, and flexible membership plans. " +
+                    "Start your transformation journey today — because your health is your greatest wealth.", biz);
+        } else {
+            specialLine = String.format("%s stands out for its commitment to excellence, customer-first approach, and deep local expertise in %s. " +
+                    "Every interaction is crafted to exceed your expectations.", biz, cat);
+        }
+
         return String.format(
-            "Welcome to %s, the leading provider of high-quality %s. We are dedicated to delivering outstanding service, local expertise, and customer satisfaction in our community. Visit us or call today to discover why local residents trust %s for all their needs!",
-            biz, cat, biz
+                "Welcome to %s — your trusted local expert in %s. %s " +
+                "Book an appointment, visit our location, or call us today. We look forward to serving you!",
+                biz, cat, specialLine
+        );
+    }
+
+    private String generateMockGrowthPlan(String businessName, String category, String address) {
+        String biz  = (businessName != null) ? businessName : "Your Business";
+        String cat  = (category  != null) ? category  : "Local Business";
+        String loc  = (address   != null) ? address   : "your area";
+        return String.format(
+            "## 🎯 Overall Assessment\n" +
+            "%s scores 7/10 for local online presence. Strong potential exists to capture more local customers through " +
+            "consistent posting, review management, and keyword-rich profile content.\n\n" +
+
+            "## 🚨 Urgent Actions (Do This Week)\n" +
+            "1. Reply to all unanswered Google reviews within 24 hours — this directly boosts local ranking.\n" +
+            "2. Ensure your Google Business Profile description is fully updated to 750 characters with relevant keywords.\n" +
+            "3. Add at least 5 recent, high-quality photos of your %s.\n" +
+            "4. Enable the Q&A section and post 3 frequently asked customer questions with detailed answers.\n" +
+            "5. Confirm your business hours are accurate and mark any special holiday hours.\n\n" +
+
+            "## ⭐ Review Growth Strategy\n" +
+            "- Train your team to politely request a Google review at the end of every positive customer interaction.\n" +
+            "- Create a printed card or WhatsApp message with a direct review link for %s.\n" +
+            "- Respond to every review — positive and negative — within 24 hours to signal engagement to Google's algorithm.\n\n" +
+
+            "## 📝 30-Day Content Calendar\n" +
+            "- Week 1: Post a 'Meet the Team' update showcasing the people behind %s.\n" +
+            "- Week 2: Share a customer success story or testimonial post.\n" +
+            "- Week 3: Announce a promotion or special offer exclusive to Google Business Profile viewers.\n" +
+            "- Week 4: Post a milestone (e.g. '5 years serving %s') with a thank-you to loyal customers.\n\n" +
+
+            "## 🔍 Local SEO Improvements\n" +
+            "1. Add '%s near me' and 'best %s in %s' naturally into your profile description.\n" +
+            "2. Use the Services section to list every service with keyword-rich names and descriptions.\n" +
+            "3. Get listed on Justdial, Sulekha, and IndiaMART for additional local citation signals.\n" +
+            "4. Post at least 3 times per week — businesses that post consistently rank higher.\n" +
+            "5. Add attributes (e.g. 'women-led', 'online appointments', 'free parking') in your profile.\n\n" +
+
+            "## 🏆 Beat the Competitors\n" +
+            "1. Monitor the top 3 competitors monthly — match or exceed their review count and response rate.\n" +
+            "2. Publish more posts than competitors — even one extra post per week creates a visible edge.\n" +
+            "3. Differentiate %s with a unique selling point clearly stated in your profile (e.g. fastest turnaround, lowest price guarantee).\n\n" +
+
+            "## 📱 WhatsApp & Customer Engagement\n" +
+            "- Create a WhatsApp Business account linked to your Google profile.\n" +
+            "- Send a weekly broadcast to previous customers with new offers or posts.\n" +
+            "- Use the WhatsApp Status feature to share your latest Google posts for wider organic reach.\n\n" +
+
+            "## 📊 30-Day KPIs to Track\n" +
+            "1. Number of new Google reviews received.\n" +
+            "2. Profile views (Search + Maps) week over week.\n" +
+            "3. Website clicks and direction requests from Google profile.\n" +
+            "4. Number of posts published this month.\n" +
+            "5. Review response rate (target: 100%% within 24 hours).",
+            biz, cat.toLowerCase(), biz, biz, loc, cat.toLowerCase(), cat.toLowerCase(), loc, biz
+        );
+    }
+
+    private String generateMockSeoAuditJson(String businessName, String category, String address) {
+        String biz = (businessName != null) ? businessName : "local business";
+        String cat = (category  != null) ? category  : "Local Business";
+        String city = "";
+        if (address != null) {
+            String[] parts = address.split(",");
+            if (parts.length >= 2) city = parts[parts.length - 2].trim();
+        }
+
+        // Build category-specific keywords
+        String catLower = cat.toLowerCase();
+        String k1 = "best " + catLower + " near me";
+        String k2 = catLower + (city.isEmpty() ? "" : " in " + city);
+        String k3 = "top rated " + catLower;
+        String k4 = "affordable " + catLower;
+        String k5 = catLower + " services";
+
+        // Category-specific keyword overrides
+        if (catLower.contains("dental") || catLower.contains("clinic")) {
+            k5 = "emergency " + catLower + " near me";
+        } else if (catLower.contains("restaurant") || catLower.contains("food")) {
+            k5 = catLower + " delivery";
+        } else if (catLower.contains("software") || catLower.contains("tech")) {
+            k4 = "custom software development";
+            k5 = "digital marketing agency";
+        } else if (catLower.contains("gym") || catLower.contains("fitness")) {
+            k4 = "personal trainer";
+            k5 = "fitness center membership";
+        }
+
+        return String.format(
+            "{\n" +
+            "  \"seo_score\": 62,\n" +
+            "  \"keyword_suggestions\": \"%s, %s, %s, %s, %s\",\n" +
+            "  \"profile_suggestions\": \"1. Write a full 750-character business description for %s with local keywords.\\n" +
+            "2. Upload at least 10 high-quality photos of your %s.\\n" +
+            "3. Add all services/products in the Google Business Profile Services section.\\n" +
+            "4. Enable the Q&A feature and pre-answer 5 common customer questions.\",\n" +
+            "  \"competitor_insights\": \"1. Top-ranked competitors in %s consistently post 3+ times per week — match this cadence.\\n" +
+            "2. Businesses with 50+ replied reviews in your category rank 40%% higher in local search results.\"\'\n" +
+            "}",
+            k1, k2, k3, k4, k5, biz, catLower, catLower
         );
     }
 

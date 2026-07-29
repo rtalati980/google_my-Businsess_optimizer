@@ -26,23 +26,45 @@ public class UsageTrackerService {
     private static final Map<String, Map<String, Integer>> PLAN_LIMITS = new HashMap<>();
 
     static {
-        // BASIC plan limits
-        Map<String, Integer> basicLimits = new HashMap<>();
-        basicLimits.put("reviewRequests", 10);
-        basicLimits.put("optimizedPosts", 2);
-        basicLimits.put("customerProfiles", 50);
-        basicLimits.put("analyticsReports", 1);
-        basicLimits.put("aiReplySuggestions", 5);
-        PLAN_LIMITS.put("BASIC", basicLimits);
+        // FREE plan limits
+        Map<String, Integer> freeLimits = new HashMap<>();
+        freeLimits.put("reviewRequests",     5);
+        freeLimits.put("optimizedPosts",     5);
+        freeLimits.put("customerProfiles",   10);
+        freeLimits.put("analyticsReports",   1);
+        freeLimits.put("aiReplySuggestions", 10);
+        PLAN_LIMITS.put("FREE", freeLimits);
 
-        // PREMIUM plan limits
-        Map<String, Integer> premiumLimits = new HashMap<>();
-        premiumLimits.put("reviewRequests", 100);
-        premiumLimits.put("optimizedPosts", 20);
-        premiumLimits.put("customerProfiles", Integer.MAX_VALUE);
-        premiumLimits.put("analyticsReports", Integer.MAX_VALUE);
-        premiumLimits.put("aiReplySuggestions", Integer.MAX_VALUE);
-        PLAN_LIMITS.put("PREMIUM", premiumLimits);
+        // STARTER plan limits
+        Map<String, Integer> starterLimits = new HashMap<>();
+        starterLimits.put("reviewRequests",     50);
+        starterLimits.put("optimizedPosts",     Integer.MAX_VALUE);
+        starterLimits.put("customerProfiles",   Integer.MAX_VALUE);
+        starterLimits.put("analyticsReports",   3);
+        starterLimits.put("aiReplySuggestions", 50);
+        PLAN_LIMITS.put("STARTER", starterLimits);
+
+        // GROWTH plan limits
+        Map<String, Integer> growthLimits = new HashMap<>();
+        growthLimits.put("reviewRequests",     200);
+        growthLimits.put("optimizedPosts",     Integer.MAX_VALUE);
+        growthLimits.put("customerProfiles",   Integer.MAX_VALUE);
+        growthLimits.put("analyticsReports",   Integer.MAX_VALUE);
+        growthLimits.put("aiReplySuggestions", 200);
+        PLAN_LIMITS.put("GROWTH", growthLimits);
+
+        // AGENCY plan limits (unlimited everything)
+        Map<String, Integer> agencyLimits = new HashMap<>();
+        agencyLimits.put("reviewRequests",     Integer.MAX_VALUE);
+        agencyLimits.put("optimizedPosts",     Integer.MAX_VALUE);
+        agencyLimits.put("customerProfiles",   Integer.MAX_VALUE);
+        agencyLimits.put("analyticsReports",   Integer.MAX_VALUE);
+        agencyLimits.put("aiReplySuggestions", Integer.MAX_VALUE);
+        PLAN_LIMITS.put("AGENCY", agencyLimits);
+
+        // Legacy aliases
+        PLAN_LIMITS.put("BASIC",    freeLimits);
+        PLAN_LIMITS.put("PREMIUM",  growthLimits);
     }
 
     public UsageTracker getOrCreateUsageTracker(String userId, String locationId, String planType) {
@@ -78,7 +100,9 @@ public class UsageTrackerService {
     }
 
     public void checkAndIncrementReviewRequests(String userId, String locationId) {
-        UsageTracker tracker = getOrCreateUsageTracker(userId, locationId, "PREMIUM");
+        String plan = subscriptionRepository.findByUserId(userId)
+                .map(s -> s.getPlanType() != null ? s.getPlanType() : "FREE").orElse("FREE");
+        UsageTracker tracker = getOrCreateUsageTracker(userId, locationId, plan);
 
         if (tracker.getReviewRequestsUsed() >= tracker.getReviewRequestsLimit()) {
             throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
@@ -94,11 +118,13 @@ public class UsageTrackerService {
     }
 
     public void checkAndIncrementOptimizedPosts(String userId, String locationId) {
-        UsageTracker tracker = getOrCreateUsageTracker(userId, locationId, "PREMIUM");
+        String plan = subscriptionRepository.findByUserId(userId)
+                .map(s -> s.getPlanType() != null ? s.getPlanType() : "FREE").orElse("FREE");
+        UsageTracker tracker = getOrCreateUsageTracker(userId, locationId, plan);
 
         if (tracker.getOptimizedPostsUsed() >= tracker.getOptimizedPostsLimit()) {
             throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
-                    "Optimized posts quota exceeded. Upgrade your plan.");
+                    "UPGRADE_REQUIRED|AI post generation limit reached. Upgrade your plan.");
         }
 
         tracker.setOptimizedPostsUsed(tracker.getOptimizedPostsUsed() + 1);
@@ -125,20 +151,29 @@ public class UsageTrackerService {
                 userId, locationId, tracker.getAnalyticsReportsUsed(), tracker.getAnalyticsReportsLimit());
     }
 
-    public void checkAndIncrementAiReplySuggestions(String userId, String locationId) {
-        UsageTracker tracker = getOrCreateUsageTracker(userId, locationId, "PREMIUM");
+    /** Called from PlanGateService with already-resolved plan type. */
+    public void checkAndIncrementAiReplySuggestions(String userId, String locationId, String plan) {
+        UsageTracker tracker = getOrCreateUsageTracker(userId, locationId, plan);
 
         if (tracker.getAiReplySuggestionsUsed() >= tracker.getAiReplySuggestionsLimit()) {
             throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
-                    "AI reply suggestions quota exceeded. Upgrade your plan.");
+                    "UPGRADE_REQUIRED|You've used all " + tracker.getAiReplySuggestionsLimit() +
+                    " AI reply suggestions this month. Upgrade for more.");
         }
 
         tracker.setAiReplySuggestionsUsed(tracker.getAiReplySuggestionsUsed() + 1);
         tracker.setUpdatedAt(LocalDateTime.now());
         usageTrackerRepository.save(tracker);
 
-        log.info("AI reply suggestions quota updated for user {} location {}: {}/{}",
-                userId, locationId, tracker.getAiReplySuggestionsUsed(), tracker.getAiReplySuggestionsLimit());
+        log.info("AI reply suggestions quota updated for user {} location {} plan {}: {}/{}",
+                userId, locationId, plan, tracker.getAiReplySuggestionsUsed(), tracker.getAiReplySuggestionsLimit());
+    }
+
+    /** Convenience overload — looks up plan from subscription. */
+    public void checkAndIncrementAiReplySuggestions(String userId, String locationId) {
+        String plan = subscriptionRepository.findByUserId(userId)
+                .map(s -> s.getPlanType() != null ? s.getPlanType() : "FREE").orElse("FREE");
+        checkAndIncrementAiReplySuggestions(userId, locationId, plan);
     }
 
     public Map<String, Object> getUserUsage(String userId) {

@@ -4,6 +4,7 @@ import com.gmb.manager.entity.Subscription;
 import com.gmb.manager.entity.User;
 import com.gmb.manager.repository.SubscriptionRepository;
 import com.gmb.manager.repository.UserRepository;
+import com.gmb.manager.service.PlanGateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,26 +21,23 @@ public class SubscriptionController {
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
+    private final PlanGateService planGateService;
 
+    /** Returns the user's current subscription, creating a FREE plan if none exists. */
     @GetMapping
     public ResponseEntity<?> getSubscription(@AuthenticationPrincipal User userParam) {
         User user = userRepository.findById(userParam.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        Subscription subscription = subscriptionRepository.findByUserId(user.getId())
-                .orElse(null);
-        if (subscription == null) {
-            subscription = Subscription.builder()
-                    .userId(user.getId())
-                    .planType("PREMIUM")
-                    .status("TRIALING")
-                    .currentPeriodEnd(LocalDateTime.now().plusDays(14))
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-            subscription = subscriptionRepository.save(subscription);
-        }
+        Subscription subscription = planGateService.getOrCreateSubscription(user.getId());
         return ResponseEntity.ok(subscription);
+    }
+
+    /** Returns a concise plan summary for the frontend plan badge + usage UI. */
+    @GetMapping("/plan-summary")
+    public ResponseEntity<?> getPlanSummary(@AuthenticationPrincipal User userParam) {
+        User user = userRepository.findById(userParam.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return ResponseEntity.ok(planGateService.getPlanSummary(user.getId()));
     }
 
     @PostMapping("/checkout")
@@ -84,7 +82,7 @@ public class SubscriptionController {
     public ResponseEntity<?> simulateExpiry(@AuthenticationPrincipal User user) {
         Subscription subscription = subscriptionRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Subscription not found"));
-        subscription.setStatus("TRIALING");
+        subscription.setStatus("EXPIRED");
         subscription.setCurrentPeriodEnd(LocalDateTime.now().minusDays(1));
         subscription.setUpdatedAt(LocalDateTime.now());
         subscriptionRepository.save(subscription);

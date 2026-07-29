@@ -35,10 +35,18 @@ public class PostService {
     }
 
     public Post generatePost(String locationId, String postType, String topic) {
-        return generatePost(locationId, postType, topic, false);
+        return generatePost(locationId, postType, topic, false, null);
     }
 
     public Post generatePost(String locationId, String postType, String topic, boolean includeImage) {
+        return generatePost(locationId, postType, topic, includeImage, null);
+    }
+
+    /**
+     * Primary generate method. If customPrompt is provided by the user,
+     * it replaces the auto-built prompt so the AI writes exactly what they asked for.
+     */
+    public Post generatePost(String locationId, String postType, String topic, boolean includeImage, String customPrompt) {
         Location location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new IllegalArgumentException("Location not found with id: " + locationId));
 
@@ -58,27 +66,42 @@ public class PostService {
                 location.getName(), location.getCategory(), location.getName(), reviewSummary
         );
 
-        String prompt = String.format(
-                "Generate a CONCISE Google Business Profile post for THIS SPECIFIC BUSINESS:\n\n" +
-                "Business Name: %s\n" +
-                "Category: %s\n" +
-                "Post Type: %s\n" +
-                "Topic: %s\n\n" +
-                "STRICT REQUIREMENTS:\n" +
-                "1. Keep it UNDER 280 characters (count spaces and emojis!)\n" +
-                "2. Be SPECIFIC to %s\n" +
-                "3. Include what customers love\n" +
-                "4. Add relevant emoji(s)\n" +
-                "5. Strong call-to-action\n\n" +
-                "Return ONLY the post text. No quotes, no titles, no extra text.",
-                location.getName(),
-                location.getCategory(),
-                postType,
-                topic != null && !topic.trim().isEmpty() ? topic : "Share what makes this business special",
-                location.getName()
-        );
+        // If user wrote their own prompt, use it — otherwise auto-build
+        String finalPrompt;
+        if (customPrompt != null && !customPrompt.trim().isEmpty()) {
+            finalPrompt = String.format(
+                    "Write a Google Business Profile post for %s (%s) based on the following instructions:\n\n" +
+                    "%s\n\n" +
+                    "STRICT REQUIREMENTS:\n" +
+                    "1. Keep it UNDER 280 characters\n" +
+                    "2. Include relevant emojis\n" +
+                    "3. End with a call-to-action\n" +
+                    "Return ONLY the post text. No quotes, no titles.",
+                    location.getName(), location.getCategory(), customPrompt
+            );
+        } else {
+            finalPrompt = String.format(
+                    "Generate a CONCISE Google Business Profile post for THIS SPECIFIC BUSINESS:\n\n" +
+                    "Business Name: %s\n" +
+                    "Category: %s\n" +
+                    "Post Type: %s\n" +
+                    "Topic: %s\n\n" +
+                    "STRICT REQUIREMENTS:\n" +
+                    "1. Keep it UNDER 280 characters (count spaces and emojis!)\n" +
+                    "2. Be SPECIFIC to %s\n" +
+                    "3. Include what customers love\n" +
+                    "4. Add relevant emoji(s)\n" +
+                    "5. Strong call-to-action\n\n" +
+                    "Return ONLY the post text. No quotes, no titles, no extra text.",
+                    location.getName(),
+                    location.getCategory(),
+                    postType,
+                    topic != null && !topic.trim().isEmpty() ? topic : "Share what makes this business special",
+                    location.getName()
+            );
+        }
 
-        String generatedContent = aiService.generateContent(systemInstruction, prompt);
+        String generatedContent = aiService.generateContent(systemInstruction, finalPrompt);
 
         // ENFORCE 300 char limit - truncate if needed
         if (generatedContent.length() > 300) {

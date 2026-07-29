@@ -6,6 +6,7 @@ import com.gmb.manager.entity.Post;
 import com.gmb.manager.entity.User;
 import com.gmb.manager.repository.BusinessRepository;
 import com.gmb.manager.repository.LocationRepository;
+import com.gmb.manager.service.PlanGateService;
 import com.gmb.manager.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class PostController {
     private final PostService postService;
     private final LocationRepository locationRepository;
     private final BusinessRepository businessRepository;
+    private final PlanGateService planGateService;
 
     private boolean isOwner(Location location, User user) {
         Business biz = businessRepository.findById(location.getBusinessId()).orElse(null);
@@ -65,10 +67,12 @@ public class PostController {
             String postType = request.getOrDefault("postType", "WEEKLY").toString();
             String topic = request.containsKey("topic") && request.get("topic") != null ?
                 request.get("topic").toString() : null;
+            String customPrompt = request.containsKey("customPrompt") && request.get("customPrompt") != null ?
+                request.get("customPrompt").toString() : null;
             boolean includeImage = request.containsKey("includeImage") &&
                 Boolean.parseBoolean(request.get("includeImage").toString());
 
-            Post post = postService.generatePost(locationId, postType, topic, includeImage);
+            Post post = postService.generatePost(locationId, postType, topic, includeImage, customPrompt);
             return ResponseEntity.ok(post);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -121,6 +125,9 @@ public class PostController {
         }
 
         try {
+            // ── Plan gate: only paid plans can push directly to Google ──────
+            planGateService.requirePublishPermission(user.getId());
+
             Post post = postService.publishPost(postId);
 
             // Verify ownership
@@ -130,6 +137,8 @@ public class PostController {
             }
 
             return ResponseEntity.ok(post);
+        } catch (org.springframework.web.server.ResponseStatusException rse) {
+            return ResponseEntity.status(rse.getStatusCode()).body(Map.of("message", rse.getReason()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {

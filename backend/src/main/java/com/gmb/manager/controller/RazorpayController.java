@@ -4,6 +4,7 @@ import com.gmb.manager.entity.Subscription;
 import com.gmb.manager.entity.User;
 import com.gmb.manager.repository.SubscriptionRepository;
 import com.gmb.manager.repository.UserRepository;
+import com.gmb.manager.service.PlanGateService;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +32,12 @@ public class RazorpayController {
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
+    private final PlanGateService planGateService;
 
-    @Value("${app.razorpay.key-id}")
+    @Value("${app.razorpay.key-id:rzp_test_your_key_id}")
     private String keyId;
 
-    @Value("${app.razorpay.key-secret}")
+    @Value("${app.razorpay.key-secret:your_key_secret}")
     private String keySecret;
 
     /**
@@ -52,12 +54,11 @@ public class RazorpayController {
         }
 
         long amountInPaise;
-        if (planType.equalsIgnoreCase("PREMIUM")) {
-            amountInPaise = 149900L; // ₹1,499 = 149900 paise
-        } else if (planType.equalsIgnoreCase("BASIC")) {
-            amountInPaise = 99900L; // ₹999 = 99900 paise
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid plan type"));
+        switch (planType.toUpperCase()) {
+            case "STARTER" -> amountInPaise = 49900L;   // ₹499
+            case "GROWTH"  -> amountInPaise = 149900L;  // ₹1,499
+            case "AGENCY"  -> amountInPaise = 399900L;  // ₹3,999
+            default -> { return ResponseEntity.badRequest().body(Map.of("error", "Invalid plan type. Use STARTER, GROWTH, or AGENCY")); }
         }
 
         // Check if credentials are mock/default for developer fallback
@@ -137,32 +138,18 @@ public class RazorpayController {
                     .body(Map.of("error", "Invalid signature. Payment verification failed."));
         }
 
-        // Update user subscription in MongoDB
-        Subscription subscription = subscriptionRepository.findByUserId(user.getId())
-                .orElse(null);
+        // Build and save the subscription using PlanGateService
+        Subscription subscription = planGateService.buildPlanSubscription(user.getId(), planType);
+        subscription.setStripeSubscriptionId(orderId);
+        subscription.setStripeCustomerId(paymentId);
 
-        if (subscription == null) {
-            subscription = Subscription.builder()
-                    .userId(user.getId())
-                    .planType(planType.toUpperCase())
-                    .status("ACTIVE")
-                    .stripeSubscriptionId(orderId) // Map to existing schema identifier fields
-                    .stripeCustomerId(paymentId)
-                    .currentPeriodEnd(LocalDateTime.now().plusDays(30))
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-        } else {
-            subscription.setPlanType(planType.toUpperCase());
-            subscription.setStatus("ACTIVE");
-            subscription.setStripeSubscriptionId(orderId);
-            subscription.setStripeCustomerId(paymentId);
-            subscription.setCurrentPeriodEnd(LocalDateTime.now().plusDays(30));
-            subscription.setUpdatedAt(LocalDateTime.now());
-        }
+        // If subscription already exists, update it
+        subscriptionRepository.findByUserId(user.getId()).ifPresent(existing -> {
+            subscription.setId(existing.getId());
+        });
 
         Subscription saved = subscriptionRepository.save(subscription);
-        log.info("Subscription successfully activated for user: {} with plan: {}", user.getEmail(), planType);
+        log.info("Subscription activated for user: {} with plan: {}", user.getEmail(), planType);
 
         return ResponseEntity.ok(saved);
     }

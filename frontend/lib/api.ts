@@ -153,8 +153,8 @@ export const apiService = {
     return response.data;
   },
 
-  generatePost: async (locationId: string, postType: string, topic?: string, includeImage?: boolean): Promise<Post> => {
-    const response = await api.post<Post>(`/api/locations/${locationId}/posts/generate`, { postType, topic, includeImage });
+  generatePost: async (locationId: string, postType: string, topic?: string, includeImage?: boolean, customPrompt?: string): Promise<Post> => {
+    const response = await api.post<Post>(`/api/locations/${locationId}/posts/generate`, { postType, topic, includeImage, customPrompt });
     return response.data;
   },
 
