@@ -4,7 +4,7 @@ import {
   Post, AIReport, Competitor, DashboardInsights 
 } from './types';
 
-const API_BASE_URL = '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://google-my-businsess-optimizer-git-923496400126.asia-south1.run.app';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

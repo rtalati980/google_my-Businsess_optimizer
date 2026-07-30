@@ -5,7 +5,7 @@ publish = ".next"
 
 [build.environment]
 NODE_VERSION = "20"
-NEXT_PUBLIC_API_URL = "https://api.bizlocalpilot.ai"
+NEXT_PUBLIC_API_URL = "https://google-my-businsess-optimizer-git-923496400126.asia-south1.run.app"
 
 [[redirects]]
 from = "/*"
