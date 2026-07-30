@@ -13,5 +13,5 @@ public interface KeywordTrackingRepository extends MongoRepository<KeywordTracki
     Page<KeywordTracking> findByLocationId(String locationId, Pageable pageable);
     KeywordTracking findByLocationIdAndKeyword(String locationId, String keyword);
     List<KeywordTracking> findByLocationIdAndKeywordType(String locationId, String keywordType);
-    List<KeywordTracking> findByLocationIdAndRankLessThan(String locationId, Integer rank);
+    List<KeywordTracking> findByLocationIdAndCurrentRankLessThan(String locationId, Integer currentRank);
 }
