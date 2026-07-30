@@ -108,9 +108,10 @@ public class RazorpayController {
             @AuthenticationPrincipal User userParam,
             @RequestBody Map<String, String> payload
     ) {
-        String orderId = payload.get("razorpayOrderId");
-        String paymentId = payload.get("razorpayPaymentId");
-        String signature = payload.get("razorpaySignature");
+        // Support both naming conventions
+        String orderId = payload.get("orderId") != null ? payload.get("orderId") : payload.get("razorpay_order_id");
+        String paymentId = payload.get("paymentId") != null ? payload.get("paymentId") : payload.get("razorpay_payment_id");
+        String signature = payload.get("signature") != null ? payload.get("signature") : payload.get("razorpay_signature");
         String planType = payload.get("planType");
 
         if (orderId == null || planType == null) {
@@ -151,7 +152,11 @@ public class RazorpayController {
         Subscription saved = subscriptionRepository.save(subscription);
         log.info("Subscription activated for user: {} with plan: {}", user.getEmail(), planType);
 
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "Payment verified and subscription activated",
+            "subscription", saved
+        ));
     }
 
     /**

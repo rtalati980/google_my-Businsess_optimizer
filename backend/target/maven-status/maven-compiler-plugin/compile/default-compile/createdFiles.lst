@@ -3,6 +3,7 @@ com\gmb\manager\entity\CustomerInteraction$CustomerInteractionBuilder.class
 com\gmb\manager\entity\KeywordTracking$RankingHistory$RankingHistoryBuilder.class
 com\gmb\manager\service\ReportService.class
 com\gmb\manager\service\NotificationService.class
+com\gmb\manager\controller\FestivalGuideController.class
 com\gmb\manager\entity\Competitor.class
 com\gmb\manager\GmbAiManagerApplication$1.class
 com\gmb\manager\entity\Review$ReviewBuilder.class
@@ -25,6 +26,7 @@ com\gmb\manager\entity\BusinessInfoOptimization$BusinessInfoOptimizationBuilder.
 com\gmb\manager\repository\CustomerProfileRepository.class
 com\gmb\manager\entity\Lead$LeadBuilder.class
 com\gmb\manager\repository\BusinessRepository.class
+com\gmb\manager\service\FestivalGuideService.class
 com\gmb\manager\controller\SubscriptionController.class
 com\gmb\manager\entity\Subscription.class
 com\gmb\manager\service\LeadService.class
@@ -38,6 +40,7 @@ com\gmb\manager\entity\AIReport$AIReportBuilder.class
 com\gmb\manager\entity\Photo.class
 com\gmb\manager\entity\Post.class
 com\gmb\manager\service\GmbService.class
+com\gmb\manager\entity\Festival.class
 com\gmb\manager\repository\ReviewReplyRepository.class
 com\gmb\manager\controller\CompetitorController.class
 com\gmb\manager\entity\Post$PostBuilder.class
@@ -55,6 +58,7 @@ com\gmb\manager\service\BusinessInfoOptimizationService.class
 com\gmb\manager\service\GoogleQuestionService.class
 com\gmb\manager\repository\LeadRepository.class
 com\gmb\manager\service\PlanGateService.class
+com\gmb\manager\entity\Festival$FestivalBuilder.class
 com\gmb\manager\service\PhotoService.class
 com\gmb\manager\service\InsightService.class
 com\gmb\manager\repository\CompetitorRepository.class

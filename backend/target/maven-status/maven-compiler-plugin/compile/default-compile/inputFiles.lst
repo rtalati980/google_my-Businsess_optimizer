@@ -11,6 +11,7 @@ C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\con
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\controller\BusinessController.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\controller\BusinessInfoController.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\controller\CompetitorController.java
+C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\controller\FestivalGuideController.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\controller\GoogleQaController.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\controller\KeywordController.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\controller\LeadController.java
@@ -33,6 +34,7 @@ C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\ent
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\entity\Competitor.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\entity\CustomerInteraction.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\entity\CustomerProfile.java
+C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\entity\Festival.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\entity\GoogleQuestion.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\entity\KeywordTracking.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\entity\Lead.java
@@ -77,6 +79,7 @@ C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\ser
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\service\AutoReplyScheduler.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\service\BusinessInfoOptimizationService.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\service\CompetitorService.java
+C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\service\FestivalGuideService.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\service\GmbService.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\service\GoogleAnalyticsService.java
 C:\Ronak\Google My Business Suggestion\backend\src\main\java\com\gmb\manager\service\GoogleQuestionService.java
