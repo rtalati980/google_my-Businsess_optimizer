@@ -2,10 +2,17 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "field-agent-admin",
-      "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/C", "cd /d C:\\Ronak\\field-agent-system\\admin && npx next dev"],
+      "name": "Frontend (Next.js)",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-Command", "cd 'C:\\Ronak\\Google My Business Suggestion\\frontend'; npm run dev"],
       "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "Backend (Spring Boot)",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-Command", "cd 'C:\\Ronak\\Google My Business Suggestion\\backend'; mvn spring-boot:run"],
+      "port": 8080,
       "autoPort": true
     }
   ]
