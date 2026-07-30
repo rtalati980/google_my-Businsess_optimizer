@@ -147,7 +147,7 @@ public class GoogleAnalyticsService {
                     "users", users,
                     "conversions", conversions,
                     "sources", sources,
-                    "summary", createSummary(traffic, users, conversions)
+                    "summary", createSummary(traffic, users, conversions, sources)
             );
         } catch (Exception e) {
             log.error("Failed to fetch metrics summary: {}", e.getMessage());

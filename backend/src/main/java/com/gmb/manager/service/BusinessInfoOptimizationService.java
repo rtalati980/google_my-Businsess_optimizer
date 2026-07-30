@@ -75,7 +75,7 @@ public class BusinessInfoOptimizationService {
     }
 
     private void checkPhone(BusinessInfoOptimization opt, Location location) {
-        if (location.getPhoneNumber() != null && !location.getPhoneNumber().isEmpty()) {
+        if (location.getPhone() != null && !location.getPhone().isEmpty()) {
             opt.setHasPhone(true);
             opt.setPhoneScore(100);
         } else {
@@ -86,7 +86,7 @@ public class BusinessInfoOptimizationService {
     }
 
     private void checkWebsite(BusinessInfoOptimization opt, Location location) {
-        if (location.getWebsiteUrl() != null && !location.getWebsiteUrl().isEmpty()) {
+        if (location.getWebsite() != null && !location.getWebsite().isEmpty()) {
             opt.setHasWebsite(true);
             opt.setWebsiteScore(100);
         } else {
@@ -97,10 +97,10 @@ public class BusinessInfoOptimizationService {
     }
 
     private void checkBusinessHours(BusinessInfoOptimization opt, Location location) {
-        // Check if business hours are set
-        if (location.getBusinessHours() != null && !location.getBusinessHours().isEmpty()) {
+        // Check if description exists (business hours typically in description or separate field)
+        if (location.getDescription() != null && !location.getDescription().isEmpty()) {
             opt.setHasBusinessHours(true);
-            opt.setHoursScore(100);
+            opt.setHoursScore(90);
         } else {
             opt.setHasBusinessHours(false);
             opt.setHoursScore(0);
@@ -151,7 +151,7 @@ public class BusinessInfoOptimizationService {
     }
 
     private void checkCategories(BusinessInfoOptimization opt, Location location) {
-        if (location.getCategories() != null && !location.getCategories().isEmpty()) {
+        if (location.getCategory() != null && !location.getCategory().isEmpty()) {
             opt.setHasCategories(true);
             opt.setCategoryScore(100);
         } else {

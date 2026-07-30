@@ -43,6 +43,7 @@ public class Photo {
     // Metadata
     private String uploadedBy;
     private LocalDateTime uploadedAt;
+    private LocalDateTime updatedAt;
     private LocalDateTime publishedAt;
     private String status; // DRAFT, PUBLISHED, ARCHIVED
 
