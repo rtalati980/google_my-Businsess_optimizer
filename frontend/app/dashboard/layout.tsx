@@ -638,7 +638,7 @@ function DashboardWrapper({
                   disabled={checkingOut !== null}
                   className="w-full py-2 bg-secondary hover:bg-secondary/90 text-foreground text-xs font-bold rounded-xl active:scale-95 transition-all mt-5"
                 >
-                  {checkingOut === 'BASIC' ? 'Opening...' : 'Select Basic'}
+                  {checkingOut === 'STARTER' ? 'Opening...' : 'Select Starter'}
                 </button>
               </div>
 
@@ -665,7 +665,7 @@ function DashboardWrapper({
                   disabled={checkingOut !== null}
                   className="w-full py-2 bg-primary hover:bg-primary/95 text-primary-foreground text-xs font-bold rounded-xl active:scale-95 transition-all mt-5 shadow-lg shadow-primary/25"
                 >
-                  {checkingOut === 'PREMIUM' ? 'Opening...' : 'Select Premium'}
+                  {checkingOut === 'GROWTH' ? 'Opening...' : 'Select Growth'}
                 </button>
               </div>
             </div>
