@@ -225,7 +225,7 @@ function DashboardWrapper({
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
-            razorpayOrderId: orderId,
+            orderId: orderId,
             planType
           })
         });
@@ -255,9 +255,9 @@ function DashboardWrapper({
               'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
               planType
             })
           });
@@ -634,7 +634,7 @@ function DashboardWrapper({
                   </ul>
                 </div>
                 <button
-                  onClick={() => handleCheckout('BASIC')}
+                  onClick={() => handleCheckout('STARTER')}
                   disabled={checkingOut !== null}
                   className="w-full py-2 bg-secondary hover:bg-secondary/90 text-foreground text-xs font-bold rounded-xl active:scale-95 transition-all mt-5"
                 >
@@ -661,7 +661,7 @@ function DashboardWrapper({
                   </ul>
                 </div>
                 <button
-                  onClick={() => handleCheckout('PREMIUM')}
+                  onClick={() => handleCheckout('GROWTH')}
                   disabled={checkingOut !== null}
                   className="w-full py-2 bg-primary hover:bg-primary/95 text-primary-foreground text-xs font-bold rounded-xl active:scale-95 transition-all mt-5 shadow-lg shadow-primary/25"
                 >
