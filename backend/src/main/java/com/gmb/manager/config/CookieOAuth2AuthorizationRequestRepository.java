@@ -1,54 +1,58 @@
 package com.gmb.manager.config;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.util.SerializationUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.Base64;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import java.time.Instant;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Stores the OAuth2 authorization request (including the state parameter)
- * in a compressed short-lived browser cookie instead of the HTTP session.
+ * Stores the OAuth2 authorization request indexed by its unique 'state' parameter.
  *
- * Uses SameSite=Lax so modern browsers (Chrome/Safari) include it on
- * top-level GET redirects from Google back to the application without
- * triggering third-party cookie blocking rules.
+ * Since Google passes the 'state' parameter back in the query string on redirect
+ * (?code=...&state=...), looking up by state bypasses all browser cookie restrictions,
+ * SameSite policies, and cookie size limits completely.
  */
 @Component
 public class CookieOAuth2AuthorizationRequestRepository
         implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
-    public static final String OAUTH2_REQUEST_COOKIE = "oauth2_auth_req";
-    private static final int COOKIE_EXPIRE_SECONDS = 300; // 5 minutes
+    private static final Map<String, StoredRequest> REQUEST_CACHE = new ConcurrentHashMap<>();
+    private static final long EXPIRE_SECONDS = 600; // 10 minutes
+
+    private static class StoredRequest {
+        final OAuth2AuthorizationRequest request;
+        final long createdAt;
+
+        StoredRequest(OAuth2AuthorizationRequest request) {
+            this.request = request;
+            this.createdAt = Instant.now().getEpochSecond();
+        }
+
+        boolean isExpired() {
+            return (Instant.now().getEpochSecond() - createdAt) > EXPIRE_SECONDS;
+        }
+    }
 
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-        Optional<String> cookieVal = getCookieValue(request, OAUTH2_REQUEST_COOKIE);
-        if (cookieVal.isPresent()) {
-            OAuth2AuthorizationRequest req = deserialize(cookieVal.get());
-            System.out.println("[OAuthCookieRepo] Loaded authorization request successfully for state: "
-                    + (req != null ? req.getState() : "NULL_DESERIALIZE_FAILED"));
-            return req;
+        cleanup();
+        String state = request.getParameter("state");
+        if (state == null || state.isBlank()) {
+            System.out.println("[OAuthStateRepo] State parameter missing in callback request");
+            return null;
         }
-        System.out.println("[OAuthCookieRepo] Cookie '" + OAUTH2_REQUEST_COOKIE + "' NOT FOUND in request cookies");
-        if (request.getCookies() != null) {
-            for (Cookie c : request.getCookies()) {
-                System.out.println("[OAuthCookieRepo] Present cookie: " + c.getName());
-            }
+        StoredRequest stored = REQUEST_CACHE.get(state);
+        if (stored == null || stored.isExpired()) {
+            System.out.println("[OAuthStateRepo] Authorization request not found or expired for state: " + state);
+            return null;
         }
-        return null;
+        System.out.println("[OAuthStateRepo] Successfully loaded authorization request for state: " + state);
+        return stored.request;
     }
 
     @Override
@@ -57,22 +61,19 @@ public class CookieOAuth2AuthorizationRequestRepository
             HttpServletRequest request,
             HttpServletResponse response) {
 
+        cleanup();
         if (authorizationRequest == null) {
-            deleteCookie(request, response, OAUTH2_REQUEST_COOKIE);
+            String state = request.getParameter("state");
+            if (state != null) {
+                REQUEST_CACHE.remove(state);
+            }
             return;
         }
 
-        String serialized = serialize(authorizationRequest);
-        if (serialized != null) {
-            ResponseCookie cookie = ResponseCookie.from(OAUTH2_REQUEST_COOKIE, serialized)
-                    .path("/")
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("Lax")
-                    .maxAge(COOKIE_EXPIRE_SECONDS)
-                    .build();
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-            System.out.println("[OAuthCookieRepo] Saved authorization request cookie for state: " + authorizationRequest.getState());
+        String state = authorizationRequest.getState();
+        if (state != null) {
+            REQUEST_CACHE.put(state, new StoredRequest(authorizationRequest));
+            System.out.println("[OAuthStateRepo] Saved authorization request in memory store for state: " + state);
         }
     }
 
@@ -81,65 +82,14 @@ public class CookieOAuth2AuthorizationRequestRepository
             HttpServletRequest request,
             HttpServletResponse response) {
         OAuth2AuthorizationRequest authorizationRequest = loadAuthorizationRequest(request);
-        if (authorizationRequest != null) {
-            deleteCookie(request, response, OAUTH2_REQUEST_COOKIE);
+        String state = request.getParameter("state");
+        if (state != null) {
+            REQUEST_CACHE.remove(state);
         }
         return authorizationRequest;
     }
 
-    // ── helpers ────────────────────────────────────────────────────────────────
-
-    private Optional<String> getCookieValue(HttpServletRequest request, String name) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) return Optional.empty();
-        return Arrays.stream(cookies)
-                .filter(c -> name.equals(c.getName()))
-                .map(Cookie::getValue)
-                .findFirst();
-    }
-
-    private void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {
-        ResponseCookie cookie = ResponseCookie.from(name, "")
-                .path("/")
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .maxAge(0)
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-    }
-
-    private String serialize(OAuth2AuthorizationRequest request) {
-        try {
-            byte[] bytes = SerializationUtils.serialize(request);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (GZIPOutputStream gzos = new GZIPOutputStream(baos)) {
-                gzos.write(bytes);
-            }
-            return Base64.getUrlEncoder().encodeToString(baos.toByteArray());
-        } catch (Exception e) {
-            try {
-                return Base64.getUrlEncoder().encodeToString(SerializationUtils.serialize(request));
-            } catch (Exception ex) {
-                System.err.println("[OAuthCookieRepo] Serialization error: " + ex.getMessage());
-                return null;
-            }
-        }
-    }
-
-    private OAuth2AuthorizationRequest deserialize(String value) {
-        try {
-            byte[] decoded = Base64.getUrlDecoder().decode(value);
-            try (GZIPInputStream gzis = new GZIPInputStream(new ByteArrayInputStream(decoded))) {
-                byte[] uncompressed = gzis.readAllBytes();
-                return (OAuth2AuthorizationRequest) SerializationUtils.deserialize(uncompressed);
-            } catch (Exception e) {
-                // Fallback for uncompressed cookies
-                return (OAuth2AuthorizationRequest) SerializationUtils.deserialize(decoded);
-            }
-        } catch (Exception e) {
-            System.err.println("[OAuthCookieRepo] Deserialization error: " + e.getMessage());
-            return null;
-        }
+    private void cleanup() {
+        REQUEST_CACHE.entrySet().removeIf(entry -> entry.getValue().isExpired());
     }
 }
