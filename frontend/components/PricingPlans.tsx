@@ -77,33 +77,91 @@ export default function PricingPlans() {
     },
   ];
 
+  const getApiUrl = () => {
+    return process.env.NEXT_PUBLIC_API_URL || 'https://api.bizlocalpilot.com';
+  };
+
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleSubscribe = async (planId: string, planPrice: number) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('gmb_auth_token') : null;
+    if (!token) {
+      alert('Please sign in to choose a subscription plan.');
+      window.location.href = '/login';
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await fetch('/api/subscriptions/razorpay/create-order', {
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        alert('Razorpay SDK failed to load. Please check your internet connection.');
+        setIsLoading(false);
+        return;
+      }
+
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/api/subscriptions/razorpay/create-order`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ planType: planId }),
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create payment order');
+      }
 
-      if (data.simulation) {
-        alert(`Simulation Mode: ${planId} Plan - ₹${planPrice}/month`);
-        window.location.href = '/dashboard';
+      const data = await response.json();
+      const { orderId, amount, currency, keyId, simulation } = data;
+
+      if (simulation) {
+        const verifyRes = await fetch(`${apiUrl}/api/subscriptions/razorpay/verify-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            orderId: orderId,
+            planType: planId,
+          }),
+        });
+
+        if (verifyRes.ok) {
+          alert(`Successfully subscribed to ${planId} Plan (Demo Mode)!`);
+          window.location.href = '/dashboard';
+        } else {
+          alert('Demo payment verification failed.');
+        }
         return;
       }
 
       // Open Razorpay modal
       const options = {
-        key: data.keyId,
-        amount: data.amount,
-        currency: 'INR',
+        key: keyId,
+        amount: amount,
+        currency: currency || 'INR',
         name: 'BizLocalPilot AI',
         description: `${planId} Plan - ₹${planPrice}/month`,
-        order_id: data.orderId,
-        handler: async (response: any) => {
-          await verifyPayment(response, planId);
+        order_id: orderId,
+        handler: async (paymentResponse: any) => {
+          await verifyPayment(paymentResponse, planId, token, apiUrl);
         },
         prefill: {
           email: localStorage.getItem('user_email') || '',
@@ -113,27 +171,24 @@ export default function PricingPlans() {
         },
       };
 
-      // @ts-ignore
-      if (window.Razorpay) {
-        // @ts-ignore
-        const rzp = new window.Razorpay(options);
-        rzp.open();
-      } else {
-        alert('Razorpay library not loaded. Please try again.');
-      }
-    } catch (error) {
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (error: any) {
       console.error('Payment error:', error);
-      alert('Failed to initiate payment. Please try again.');
+      alert(error.message || 'Failed to initiate payment. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const verifyPayment = async (response: any, planId: string) => {
+  const verifyPayment = async (response: any, planId: string, token: string, apiUrl: string) => {
     try {
-      const verifyResponse = await fetch('/api/subscriptions/razorpay/verify-payment', {
+      const verifyResponse = await fetch(`${apiUrl}/api/subscriptions/razorpay/verify-payment`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({
           orderId: response.razorpay_order_id,
           paymentId: response.razorpay_payment_id,
@@ -143,11 +198,11 @@ export default function PricingPlans() {
       });
 
       const result = await verifyResponse.json();
-      if (result.success) {
+      if (verifyResponse.ok && result.success !== false) {
         alert('Payment successful! Redirecting to dashboard...');
         window.location.href = '/dashboard';
       } else {
-        alert('Payment verification failed. Please try again.');
+        alert(result.error || 'Payment verification failed. Please contact support.');
       }
     } catch (error) {
       console.error('Verification error:', error);
