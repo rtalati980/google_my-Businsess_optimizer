@@ -14,8 +14,8 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
       {
-        // Allow Google Bot full access to all public pages
-        userAgent: 'Googlebot',
+        // Allow Google Bot & Gemini
+        userAgent: ['Googlebot', 'Google-Extended'],
         allow: '/',
         disallow: [
           '/dashboard/',
@@ -24,16 +24,22 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
       {
-        // Allow Bing Bot full access
-        userAgent: 'Bingbot',
+        // Allow OpenAI ChatGPT Crawler
+        userAgent: ['GPTBot', 'ChatGPT-User'],
         allow: '/',
-        disallow: [
-          '/dashboard/',
-          '/api/',
-        ],
+      },
+      {
+        // Allow Perplexity AI Crawler
+        userAgent: 'PerplexityBot',
+        allow: '/',
+      },
+      {
+        // Allow Anthropic Claude Crawler
+        userAgent: ['ClaudeBot', 'anthropic-ai'],
+        allow: '/',
       },
     ],
-    sitemap: 'https://bizlocalpilot.ai/sitemap.xml',
-    host: 'https://bizlocalpilot.ai',
+    sitemap: 'https://bizlocalpilot.com/sitemap.xml',
+    host: 'https://bizlocalpilot.com',
   };
 }

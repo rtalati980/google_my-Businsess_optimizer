@@ -1,0 +1,24 @@
+# BizLocalPilot AI
+
+> BizLocalPilot AI is an all-in-one local search authority and Google My Business (GMB) optimization platform designed for modern brands, agency owners, multi-location businesses, healthcare providers, and hospitality services in India and globally.
+
+## Core Features
+- **AI Review Auto-Responses**: Powered by Google Gemini AI, generates contextual, professional, and SEO-rich review replies tailored specifically for your industry (hospitality, healthcare, retail, professional services).
+- **GMB Post Campaign Scheduler**: Automated weekly post drafting, promotions, and holiday greeting scheduler that keeps local customers engaged and signals active profile status to Google Maps ranking algorithms.
+- **Local SEO Competitor Tracker**: Tracks competitor rankings, primary categories, review velocity, and local pack visibility to identify growth opportunities.
+- **Automated Local Audit Reports**: Generates instant GMB audit scores, missing profile information alerts, and actionable recommendations.
+- **DPDP Act 2023 Compliant**: Built strictly adhering to India's Digital Personal Data Protection Act with complete user data privacy and single-click data erasure.
+
+## Target Audience
+Local business owners, local SEO agencies, digital marketing consultants, restaurant chains, dental clinics, retail stores, and multi-location enterprises looking to boost local search rankings and automate customer review management.
+
+## Contact Information
+- Website: https://bizlocalpilot.com
+- Support Email: hello@codecrafters.co.in
+- Phone / WhatsApp: +91 82641 71623
+- Product Owner: CodeCrafters Technologies, Mumbai, Maharashtra, India 🇮🇳
+
+## Official Pages
+- Pricing: https://bizlocalpilot.com/pricing
+- Privacy Policy: https://bizlocalpilot.com/privacy
+- Terms of Service: https://bizlocalpilot.com/terms

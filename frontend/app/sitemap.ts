@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://bizlocalpilot.ai';
+  const baseUrl = 'https://bizlocalpilot.com';
   const now = new Date();
 
   return [
