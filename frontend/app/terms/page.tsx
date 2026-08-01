@@ -222,8 +222,8 @@ export default function TermsPage() {
               These Terms are governed by the laws of India. Any disputes arising from these Terms or use of our platform
               shall be subject to the exclusive jurisdiction of the courts in Mumbai, Maharashtra, India.
               We encourage resolving disputes amicably — please contact us first at{' '}
-              <a href="mailto:ronak.talati@codecrafters.co.in" className="text-violet-600 hover:underline">
-                ronak.talati@codecrafters.co.in
+              <a href="mailto:hello@codecrafters.co.in" className="text-violet-600 hover:underline">
+                hello@codecrafters.co.in
               </a>.
             </p>
           </section>
@@ -259,9 +259,9 @@ export default function TermsPage() {
               </div>
               <div>
                 <p className="text-gray-400 text-xs uppercase tracking-widest mb-2 font-bold">Email</p>
-                <a href="mailto:ronak.talati@codecrafters.co.in"
+                <a href="mailto:hello@codecrafters.co.in"
                   className="text-violet-400 hover:text-violet-300 transition-colors text-sm">
-                  ronak.talati@codecrafters.co.in
+                  hello@codecrafters.co.in
                 </a>
               </div>
               <div>

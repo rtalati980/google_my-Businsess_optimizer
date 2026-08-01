@@ -274,14 +274,7 @@ function LoginContent() {
               )}
             </button>
 
-            <p className="text-center text-xs text-slate-500">
-              By signing in, you agree to our{' '}
-              <button type="button" onClick={() => setShowTermsModal(true)} className="text-violet-400 hover:underline font-bold">
-                Terms of Service
-              </button>{' '}
-              and{' '}
-              <a href="/privacy" className="text-violet-400 hover:underline font-bold">Privacy Policy</a>
-            </p>
+
 
             <div className="relative flex items-center justify-center my-2">
               <span className="absolute px-3 bg-slate-950 text-xs font-semibold text-slate-600 uppercase tracking-widest">

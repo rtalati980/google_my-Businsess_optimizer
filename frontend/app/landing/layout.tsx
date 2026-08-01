@@ -264,7 +264,7 @@ const organizationSchema = {
     {
       '@type': 'ContactPoint',
       contactType: 'customer support',
-      email: 'ronak.talati@codecrafters.co.in',
+      email: 'hello@codecrafters.co.in',
       telephone: '+918264171623',
       availableLanguage: ['English', 'Hindi'],
     },
