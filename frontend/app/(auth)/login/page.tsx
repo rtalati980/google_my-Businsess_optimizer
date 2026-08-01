@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
+import { Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
 
@@ -13,7 +13,7 @@ function LoginContent() {
   const reasonParam = searchParams.get('reason');
 
   const [loading, setLoading] = useState(false);
-  const [sandboxLoading, setSandboxLoading] = useState(false);
+
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -68,27 +68,7 @@ function LoginContent() {
     }
   };
 
-  const handleSandboxLogin = async () => {
-    if (!acceptedTerms) {
-      setErrorMessage('You must accept the Terms of Service & Privacy Policy to continue.');
-      return;
-    }
-    try {
-      setSandboxLoading(true);
-      const apiUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080');
-      const res = await axios.post(`${apiUrl}/api/auth/mock-login`);
-      if (res.data && res.data.token) {
-        localStorage.setItem('gmb_auth_token', res.data.token);
-        document.cookie = `gmb_auth_token=${res.data.token}; path=/; max-age=86400; SameSite=Lax`;
-        router.replace('/dashboard');
-      } else {
-        setSandboxLoading(false);
-      }
-    } catch (err) {
-      console.error('Sandbox login failed:', err);
-      setSandboxLoading(false);
-    }
-  };
+
 
   // Avoid hydration mismatch by showing minimal content until mounted
   if (!mounted) {
@@ -276,35 +256,7 @@ function LoginContent() {
 
 
 
-            <div className="relative flex items-center justify-center my-2">
-              <span className="absolute px-3 bg-slate-950 text-xs font-semibold text-slate-600 uppercase tracking-widest">
-                or
-              </span>
-              <div className="w-full border-t border-slate-800" />
-            </div>
 
-            {/* Sandbox / Demo Login */}
-            <button
-              id="sandbox-login-btn"
-              onClick={handleSandboxLogin}
-              disabled={sandboxLoading}
-              className={`w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white font-semibold rounded-xl transition-all duration-200 ${
-                !acceptedTerms ? 'opacity-40 cursor-not-allowed' : ''
-              }`}
-            >
-              {sandboxLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 text-violet-400" />
-                  Try Demo (Sandbox Mode)
-                </>
-              )}
-            </button>
-
-            <p className="text-[10px] text-center text-slate-600 leading-relaxed max-w-xs mx-auto">
-              Demo mode gives you a pre-seeded business profile to explore all features without connecting Google.
-            </p>
           </div>
 
           {/* Stats */}
