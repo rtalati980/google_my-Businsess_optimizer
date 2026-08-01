@@ -22,8 +22,9 @@ import java.util.zip.GZIPOutputStream;
  * Stores the OAuth2 authorization request (including the state parameter)
  * in a compressed short-lived browser cookie instead of the HTTP session.
  *
- * GZIP compression ensures the cookie remains well under browser size limits (4KB).
- * ResponseCookie ensures clean SameSite=None; Secure header emission.
+ * Uses SameSite=Lax so modern browsers (Chrome/Safari) include it on
+ * top-level GET redirects from Google back to the application without
+ * triggering third-party cookie blocking rules.
  */
 @Component
 public class CookieOAuth2AuthorizationRequestRepository
@@ -34,9 +35,20 @@ public class CookieOAuth2AuthorizationRequestRepository
 
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-        return getCookieValue(request, OAUTH2_REQUEST_COOKIE)
-                .map(this::deserialize)
-                .orElse(null);
+        Optional<String> cookieVal = getCookieValue(request, OAUTH2_REQUEST_COOKIE);
+        if (cookieVal.isPresent()) {
+            OAuth2AuthorizationRequest req = deserialize(cookieVal.get());
+            System.out.println("[OAuthCookieRepo] Loaded authorization request successfully for state: "
+                    + (req != null ? req.getState() : "NULL_DESERIALIZE_FAILED"));
+            return req;
+        }
+        System.out.println("[OAuthCookieRepo] Cookie '" + OAUTH2_REQUEST_COOKIE + "' NOT FOUND in request cookies");
+        if (request.getCookies() != null) {
+            for (Cookie c : request.getCookies()) {
+                System.out.println("[OAuthCookieRepo] Present cookie: " + c.getName());
+            }
+        }
+        return null;
     }
 
     @Override
@@ -56,10 +68,11 @@ public class CookieOAuth2AuthorizationRequestRepository
                     .path("/")
                     .httpOnly(true)
                     .secure(true)
-                    .sameSite("None")
+                    .sameSite("Lax")
                     .maxAge(COOKIE_EXPIRE_SECONDS)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            System.out.println("[OAuthCookieRepo] Saved authorization request cookie for state: " + authorizationRequest.getState());
         }
     }
 
@@ -90,7 +103,7 @@ public class CookieOAuth2AuthorizationRequestRepository
                 .path("/")
                 .httpOnly(true)
                 .secure(true)
-                .sameSite("None")
+                .sameSite("Lax")
                 .maxAge(0)
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -108,6 +121,7 @@ public class CookieOAuth2AuthorizationRequestRepository
             try {
                 return Base64.getUrlEncoder().encodeToString(SerializationUtils.serialize(request));
             } catch (Exception ex) {
+                System.err.println("[OAuthCookieRepo] Serialization error: " + ex.getMessage());
                 return null;
             }
         }
@@ -124,6 +138,7 @@ public class CookieOAuth2AuthorizationRequestRepository
                 return (OAuth2AuthorizationRequest) SerializationUtils.deserialize(decoded);
             }
         } catch (Exception e) {
+            System.err.println("[OAuthCookieRepo] Deserialization error: " + e.getMessage());
             return null;
         }
     }
