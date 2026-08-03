@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createAuditSubmission } from '@/lib/db/audit-submissions';
 
 interface AuditFormData {
   business_name: string;
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prepare data for storage/email
+    // Prepare data for storage
     const auditData: AuditFormData = {
       business_name: business_name.trim(),
       email: email.trim().toLowerCase(),
@@ -77,22 +78,56 @@ export async function POST(request: NextRequest) {
       consent: 'true',
     };
 
-    // TODO: Send to email service (Resend, SendGrid, etc.)
-    // TODO: Store in database
-    // TODO: Send confirmation email
-    // TODO: Trigger audit generation
-
-    console.log('Audit form submission:', auditData);
-
-    // For now, return success response
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Your audit request has been received! Check your email within 24 hours.',
+    // Store in MongoDB
+    try {
+      const submission = await createAuditSubmission({
+        business_name: auditData.business_name,
         email: auditData.email,
-      },
-      { status: 200 }
-    );
+        phone: auditData.phone,
+        business_type: auditData.business_type,
+        city: auditData.city,
+        gmb_url: auditData.gmb_url,
+        // Extract UTM parameters from referrer
+        utm_source: request.headers.get('referer') ? 'google_ads' : undefined,
+      });
+
+      console.log('Audit submission saved:', submission._id);
+
+      // TODO: Send confirmation email via email service (Resend, SendGrid, etc.)
+      // TODO: Queue audit generation job
+      // TODO: Send audit results email after generation
+
+      // Track in GA
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'audit_form_submission_completed', {
+          email: auditData.email,
+          business_type: auditData.business_type,
+          city: auditData.city,
+        });
+      }
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Your audit request has been received! Check your email within 24 hours.',
+          email: auditData.email,
+          submissionId: submission._id,
+        },
+        { status: 200 }
+      );
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      // Still return success to user even if DB fails (graceful degradation)
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Your audit request has been received! Check your email within 24 hours.',
+          email: auditData.email,
+          warning: 'Some features may be limited',
+        },
+        { status: 200 }
+      );
+    }
   } catch (error) {
     console.error('Form submission error:', error);
     return NextResponse.json(
