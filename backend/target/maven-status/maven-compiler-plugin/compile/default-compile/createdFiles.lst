@@ -42,6 +42,7 @@ com\gmb\manager\entity\Post.class
 com\gmb\manager\service\GmbService.class
 com\gmb\manager\entity\Festival.class
 com\gmb\manager\repository\ReviewReplyRepository.class
+com\gmb\manager\config\CookieOAuth2AuthorizationRequestRepository$StoredRequest.class
 com\gmb\manager\controller\CompetitorController.class
 com\gmb\manager\entity\Post$PostBuilder.class
 com\gmb\manager\controller\GoogleQaController.class

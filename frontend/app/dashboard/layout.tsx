@@ -350,6 +350,7 @@ function DashboardWrapper({
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Profile Audit', href: '/dashboard/audit', icon: ClipboardCheck },
+    { name: 'AI Descriptions', href: '/dashboard/description-generator', icon: Sparkles },
     { name: 'Reviews', href: '/dashboard/reviews', icon: MessageSquare },
     { name: 'Sentiment Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Posts Builder', href: '/dashboard/posts', icon: Megaphone },
