@@ -215,7 +215,6 @@ export default function LandingPageClient() {
           <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-500">
             {[
               { id: 'features', label: 'Features' },
-              { id: 'pricing', label: 'Pricing' },
               { id: 'testimonials', label: 'Reviews' },
               { id: 'faq', label: 'FAQ' },
             ].map(({ id, label }) => (
@@ -250,7 +249,6 @@ export default function LandingPageClient() {
               <div className="px-4 py-4 space-y-3">
                 {[
                   { id: 'features', label: 'Features' },
-                  { id: 'pricing', label: 'Pricing' },
                   { id: 'testimonials', label: 'Reviews' },
                   { id: 'faq', label: 'FAQ' },
                 ].map(({ id, label }) => (
@@ -698,56 +696,41 @@ export default function LandingPageClient() {
           </Section>
         </section>
 
-        {/* ── PRICING ── */}
-        <section id="pricing" className="py-24 bg-white" aria-labelledby="pricing-heading">
-          <Section className="max-w-7xl mx-auto px-4 sm:px-6">
-            <motion.div variants={fadeUp} className="text-center mb-14">
-              <span className="text-xs font-bold text-violet-600 uppercase tracking-widest block mb-3">Simple Pricing</span>
-              <h2 id="pricing-heading" className="text-3xl sm:text-5xl font-black text-gray-900 mb-4">Plans for Every Business Size</h2>
-              <p className="text-gray-500 text-lg max-w-xl mx-auto">Start free forever. Upgrade only when you're ready to publish directly to Google.</p>
+        {/* ── FREE BETA ACCESS ── */}
+        <section id="testing-phase" className="py-24 bg-white" aria-labelledby="testing-heading">
+          <Section className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+            <motion.div variants={fadeUp} className="bg-gradient-to-br from-violet-900 via-slate-900 to-indigo-950 rounded-3xl p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
+              <span className="inline-block px-4 py-1.5 bg-violet-500/20 text-violet-300 rounded-full text-xs font-bold uppercase tracking-wider mb-4 border border-violet-500/30">
+                🎉 Free Beta Testing Phase
+              </span>
+              <h2 id="testing-heading" className="text-3xl sm:text-4xl font-black text-white mb-4">100% Free & Unlimited Access for Testers</h2>
+              <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
+                BizLocalPilot AI is currently open for exclusive beta testing. All features — including Gemini AI review responses, local SEO audits, and post scheduling — are completely unlocked with no payment or credit card required.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-left">
+                <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">Unlimited Profiles</h4>
+                  <p className="text-xs text-slate-400 mt-1">Manage multiple Google Business Profile locations without limits.</p>
+                </div>
+                <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">AI Autopilot</h4>
+                  <p className="text-xs text-slate-400 mt-1">Generate automated, high-converting review replies in seconds.</p>
+                </div>
+                <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">Full SEO Suite</h4>
+                  <p className="text-xs text-slate-400 mt-1">Access competitor tracking, local rankings, and weekly reports.</p>
+                </div>
+              </div>
+
+              <Link href="/login" className="inline-flex items-center gap-2 px-8 py-4 bg-violet-600 hover:bg-violet-500 text-white font-black text-base rounded-2xl transition-all shadow-xl shadow-violet-600/30 hover:scale-[1.02] active:scale-[0.98]">
+                Access Free Beta Now <ChevronRight className="h-5 w-5" />
+              </Link>
             </motion.div>
-            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch" role="list">
-              {pricingPlans.map((plan, i) => (
-                <motion.li key={plan.name} variants={fadeUp} custom={i}
-                  whileHover={{ y: -8, boxShadow: plan.highlight ? '0 30px 60px rgba(124,58,237,0.2)' : '0 20px 40px rgba(0,0,0,0.08)' }}
-                  transition={{ type: 'spring', stiffness: 220, damping: 20 }}
-                  className={`relative flex flex-col rounded-3xl p-7 list-none ${plan.highlight
-                    ? 'bg-violet-600 text-white shadow-2xl shadow-violet-200'
-                    : 'bg-white border border-gray-200 shadow-sm'
-                    }`}
-                  itemScope itemType="https://schema.org/Offer">
-                  {plan.badge && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <span className="px-4 py-1 bg-amber-400 text-amber-900 text-xs font-black rounded-full shadow">{plan.badge}</span>
-                    </div>
-                  )}
-                  <h3 className={`text-xl font-black mb-1 ${plan.highlight ? 'text-white' : 'text-gray-900'}`} itemProp="name">{plan.name}</h3>
-                  <p className={`text-sm mb-4 ${plan.highlight ? 'text-violet-200' : 'text-gray-400'}`}>{plan.description}</p>
-                  <div className="flex items-baseline gap-1 mb-6">
-                    <span className={`text-4xl font-black ${plan.highlight ? 'text-white' : 'text-gray-900'}`} itemProp="price">{plan.price}</span>
-                    <span className={`text-sm ${plan.highlight ? 'text-violet-200' : 'text-gray-400'}`}>{plan.period}</span>
-                  </div>
-                  <ul className="space-y-3 flex-1 mb-7">
-                    {plan.features.map(f => (
-                      <li key={f} className={`flex items-start gap-2.5 text-sm ${plan.highlight ? 'text-violet-100' : 'text-gray-600'}`}>
-                        <CheckCircle2 className={`h-4 w-4 flex-shrink-0 mt-0.5 ${plan.highlight ? 'text-violet-200' : 'text-green-500'}`} aria-hidden="true" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Link href="/login"
-                      className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all ${plan.highlight
-                        ? 'bg-white text-violet-700 hover:bg-violet-50 shadow-lg'
-                        : 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-100'
-                        }`}
-                      aria-label={`${plan.cta} — ${plan.name} plan at ${plan.price}${plan.period}`}>
-                      {plan.cta} <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                    </Link>
-                  </motion.div>
-                </motion.li>
-              ))}
-            </ul>
           </Section>
         </section>
 

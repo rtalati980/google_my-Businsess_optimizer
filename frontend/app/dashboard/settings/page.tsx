@@ -461,125 +461,44 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Right Column: Stripe Simulation Plans */}
+        {/* Right Column: Free Testing Status */}
         <div className="lg:col-span-7 space-y-6">
           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-black flex items-center gap-2">
-                <CreditCard className="h-4.5 w-4.5 text-muted-foreground" /> Subscription Tier Mappings
+                <CreditCard className="h-4.5 w-4.5 text-primary" /> Free Beta Testing Phase
               </h3>
-              {sub && (
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                  sub.status === 'ACTIVE' 
-                    ? 'bg-emerald-500/10 text-emerald-500' 
-                    : 'bg-destructive/10 text-destructive'
-                }`}>
-                  {sub.planType} Tier: {sub.status}
-                </span>
-              )}
-            </div>
-
-            {loading ? (
-              <div className="h-32 flex items-center justify-center text-muted-foreground">
-                <Loader2 className="h-5 w-5 animate-spin mr-2" /> Synch billing records...
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Basic Plan */}
-                <div className={`border rounded-2xl p-5 space-y-4 relative flex flex-col justify-between ${
-                  sub?.planType === 'BASIC' 
-                    ? 'border-primary bg-primary/[0.02]' 
-                    : 'border-border bg-card'
-                }`}>
-                  <div className="space-y-1.5">
-                    <h4 className="font-black text-sm">Basic Plan</h4>
-                    <p className="text-[10px] text-muted-foreground">Ideal for single GMB store locations.</p>
-                    <div className="text-2xl font-black mt-2">₹999 <span className="text-[10px] text-muted-foreground font-normal">/ month</span></div>
-                  </div>
-
-                  <ul className="text-[10px] text-muted-foreground space-y-2 my-4">
-                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Respond to 50 reviews/mo</li>
-                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Weekly GMB post draft</li>
-                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Track 1 competitor</li>
-                  </ul>
-
-                  <button
-                    onClick={() => handleCheckout('BASIC')}
-                    disabled={sub?.planType === 'BASIC' || checkingOut !== null}
-                    className={`w-full py-2 rounded-xl text-xs font-bold transition-all ${
-                      sub?.planType === 'BASIC'
-                        ? 'bg-primary/10 text-primary border border-primary/20 cursor-default'
-                        : 'bg-foreground text-background hover:opacity-90 active:scale-95'
-                    }`}
-                  >
-                    {checkingOut === 'BASIC' ? 'Opening Razorpay...' : sub?.planType === 'BASIC' ? 'Active Plan' : 'Downgrade to Basic'}
-                  </button>
-                </div>
-
-                {/* Premium Plan */}
-                <div className={`border rounded-2xl p-5 space-y-4 relative flex flex-col justify-between ${
-                  sub?.planType === 'PREMIUM' 
-                    ? 'border-primary bg-primary/[0.02]' 
-                    : 'border-border bg-card'
-                }`}>
-                  <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
-                    Popular
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <h4 className="font-black text-sm flex items-center gap-1.5">
-                      Premium Plan <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-current" />
-                    </h4>
-                    <p className="text-[10px] text-muted-foreground">Unlimited local search business growth.</p>
-                    <div className="text-2xl font-black mt-2">₹1,499 <span className="text-[10px] text-muted-foreground font-normal">/ month</span></div>
-                  </div>
-
-                  <ul className="text-[10px] text-muted-foreground space-y-2 my-4">
-                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Unlimited reviews reply</li>
-                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> AI weekly audit logs</li>
-                    <li className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Track 5 competitors matrix</li>
-                  </ul>
-
-                  <button
-                    onClick={() => handleCheckout('PREMIUM')}
-                    disabled={sub?.planType === 'PREMIUM' || checkingOut !== null}
-                    className={`w-full py-2 rounded-xl text-xs font-bold transition-all ${
-                      sub?.planType === 'PREMIUM'
-                        ? 'bg-primary/10 text-primary border border-primary/20 cursor-default'
-                        : 'bg-primary text-primary-foreground hover:opacity-90 active:scale-95 shadow-md shadow-primary/25'
-                    }`}
-                  >
-                    {checkingOut === 'PREMIUM' ? 'Opening Razorpay...' : sub?.planType === 'PREMIUM' ? 'Active Plan' : 'Pay with Razorpay'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="border-t border-border pt-4 text-[10px] text-muted-foreground leading-relaxed flex items-start gap-2 bg-secondary/10 p-3 rounded-xl">
-              <AlertCircle className="h-4.5 w-4.5 text-primary flex-shrink-0 mt-0.5" />
-              <span>
-                Razorpay sandbox integration is active. If your credentials are not configured, it will simulate a successful payment instantly. Otherwise, it will trigger the secure Razorpay Checkout overlay supporting UPI, Netbanking, and Cards.
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500">
+                Status: UNLIMITED ACCESS
               </span>
             </div>
-            
-            <button
-              onClick={async () => {
-                if (window.confirm("Do you want to simulate trial expiry? This will set your subscription to 'TRIALING' and end date to 'yesterday' to trigger the paywall modal.")) {
-                  const token = localStorage.getItem('gmb_auth_token');
-                  const res = await fetch(`${API_URL}/api/subscriptions/simulate-expiry`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                  });
-                  if (res.ok) {
-                    alert("Trial expiry simulated! Reloading page to trigger paywall.");
-                    window.location.reload();
-                  }
-                }
-              }}
-              className="w-full mt-3 py-1.5 border border-dashed border-rose-500/30 hover:bg-rose-500/10 text-rose-400 text-[10px] font-bold rounded-xl transition-all"
-            >
-              Simulate Trial Expiry (Developer Testing)
-            </button>
+
+            <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-primary/10 rounded-xl text-primary font-black">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-foreground">Tester Privileges Active</h4>
+                  <p className="text-xs text-muted-foreground">All features are 100% unlocked with zero restrictions.</p>
+                </div>
+              </div>
+
+              <ul className="text-xs text-muted-foreground space-y-2.5 pt-2 border-t border-border/60">
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                  <span><strong>Unlimited Locations:</strong> Manage multiple Google Business Profiles seamlessly.</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                  <span><strong>Unlimited Gemini AI Replies:</strong> Generate auto-responses for any review volume.</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                  <span><strong>Full SEO &amp; Competitor Suite:</strong> Audit listings and monitor competitors without caps.</span>
+                </li>
+              </ul>
+            </div>
           </div>
 
           {/* Google Maps Profile Editing */}

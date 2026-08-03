@@ -289,10 +289,7 @@ function DashboardWrapper({
     }
   };
 
-  const isTrialExpired = 
-    subscription && 
-    subscription.status === 'TRIALING' && 
-    new Date() > new Date(subscription.currentPeriodEnd);
+  const isTrialExpired = false;
 
   useEffect(() => {
     const fetchLocations = async () => {
