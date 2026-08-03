@@ -310,10 +310,18 @@ export default function LandingPageClient() {
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
                   className="flex flex-col sm:flex-row gap-3 mb-8">
                   <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                    <Link href="/login"
+                    <Link href="/free-audit"
                       className="flex items-center justify-center gap-2 px-7 py-3.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl transition-colors shadow-xl shadow-violet-200 text-base"
-                      aria-label="Start using BizLocalPilot AI for free — no credit card required">
-                      Start Free — No Credit Card
+                      aria-label="Get your free ₹10,000 Google Maps audit"
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && window.gtag) {
+                          window.gtag('event', 'cta_click', {
+                            'cta_name': 'get_free_audit_hero',
+                            'location': 'hero_section'
+                          });
+                        }
+                      }}>
+                      Get Free Audit (₹10k Value)
                       <motion.div animate={{ x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
                         <ArrowRight className="h-4 w-4" aria-hidden="true" />
                       </motion.div>
@@ -321,7 +329,15 @@ export default function LandingPageClient() {
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                     <Link href="/login"
-                      className="flex items-center justify-center gap-2 px-7 py-3.5 bg-white border-2 border-gray-200 hover:border-violet-300 text-gray-700 hover:text-violet-600 font-bold rounded-xl transition-all text-base">
+                      className="flex items-center justify-center gap-2 px-7 py-3.5 bg-white border-2 border-gray-200 hover:border-violet-300 text-gray-700 hover:text-violet-600 font-bold rounded-xl transition-all text-base"
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && window.gtag) {
+                          window.gtag('event', 'cta_click', {
+                            'cta_name': 'view_live_demo',
+                            'location': 'hero_section'
+                          });
+                        }
+                      }}>
                       View Live Demo
                     </Link>
                   </motion.div>
@@ -474,7 +490,15 @@ export default function LandingPageClient() {
                   ))}
                 </ul>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Link href="/login" className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-violet-200">
+                  <Link href="/free-audit" className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-violet-200"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.gtag) {
+                        window.gtag('event', 'cta_click', {
+                          'cta_name': 'try_ai_reply',
+                          'location': 'review_feature_section'
+                        });
+                      }
+                    }}>
                     Try AI Reply Generator <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 </motion.div>
@@ -555,7 +579,15 @@ export default function LandingPageClient() {
                   ))}
                 </ul>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Link href="/login" className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-green-200">
+                  <Link href="/free-audit" className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-green-200"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.gtag) {
+                        window.gtag('event', 'cta_click', {
+                          'cta_name': 'audit_profile_now',
+                          'location': 'seo_feature_section'
+                        });
+                      }
+                    }}>
                     Audit My Profile Now <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 </motion.div>
@@ -591,7 +623,15 @@ export default function LandingPageClient() {
                   ))}
                 </div>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Link href="/login" className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-orange-200">
+                  <Link href="/free-audit" className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-orange-200"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.gtag) {
+                        window.gtag('event', 'cta_click', {
+                          'cta_name': 'start_growing_business',
+                          'location': 'india_section'
+                        });
+                      }
+                    }}>
                     Start Growing Your Business <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 </motion.div>
@@ -738,14 +778,30 @@ export default function LandingPageClient() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-                  <Link href="/login"
-                    className="flex items-center justify-center gap-2 px-8 py-4 bg-white text-violet-700 font-bold text-lg rounded-2xl hover:bg-violet-50 transition-colors shadow-xl">
-                    Get Started Free <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                  <Link href="/free-audit"
+                    className="flex items-center justify-center gap-2 px-8 py-4 bg-white text-violet-700 font-bold text-lg rounded-2xl hover:bg-violet-50 transition-colors shadow-xl"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.gtag) {
+                        window.gtag('event', 'cta_click', {
+                          'cta_name': 'get_started_free_final',
+                          'location': 'final_cta_section'
+                        });
+                      }
+                    }}>
+                    Get Free Audit <ArrowRight className="h-5 w-5" aria-hidden="true" />
                   </Link>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                   <Link href="/login"
-                    className="flex items-center justify-center gap-2 px-8 py-4 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold text-lg rounded-2xl transition-all">
+                    className="flex items-center justify-center gap-2 px-8 py-4 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold text-lg rounded-2xl transition-all"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.gtag) {
+                        window.gtag('event', 'cta_click', {
+                          'cta_name': 'sandbox_demo',
+                          'location': 'final_cta_section'
+                        });
+                      }
+                    }}>
                     Enter Sandbox Demo
                   </Link>
                 </motion.div>

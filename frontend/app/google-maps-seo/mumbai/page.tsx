@@ -23,7 +23,9 @@ export const metadata: Metadata = {
     title: 'Google Maps SEO for Mumbai - Rank #1',
     description: 'Expert guide for Mumbai businesses to rank higher on Google Maps and get more customers.',
   },
-  canonical: 'https://bizlocalpilot.com/google-maps-seo/mumbai',
+  alternates: {
+    canonical: 'https://bizlocalpilot.ai/google-maps-seo/mumbai',
+  },
 };
 
 export default function MumbaiPage() {
