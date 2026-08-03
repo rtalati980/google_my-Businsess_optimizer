@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { CheckCircle2, Mail, Clock, MessageSquare } from 'lucide-react';
+import ConversionTracker from './ConversionTracker';
 
 export const metadata = {
   title: 'Audit Request Received | BizLocalPilot AI',
@@ -10,6 +11,9 @@ export const metadata = {
 export default function AuditSuccessPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+      {/* Track conversion in Google Ads & Analytics */}
+      <ConversionTracker />
+
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-20">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
