@@ -259,6 +259,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if AI provider is configured
+    if (!process.env.AI_PROVIDER || !process.env.AI_API_KEY) {
+      console.error('❌ AI Configuration Error:', {
+        AI_PROVIDER: process.env.AI_PROVIDER ? '✅ Set' : '❌ Missing',
+        AI_API_KEY: process.env.AI_API_KEY ? '✅ Set' : '❌ Missing',
+      });
+      return NextResponse.json(
+        {
+          error: 'AI service not configured. Please contact support.',
+          details: 'Missing AI_PROVIDER or AI_API_KEY in environment'
+        },
+        { status: 503 }
+      );
+    }
+
     // In production, verify JWT token here
     // For now, we'll extract userId from token (implementation depends on your auth system)
     // This is a simplified version - implement proper JWT verification

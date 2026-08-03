@@ -68,6 +68,29 @@ function LoginContent() {
     }
   };
 
+  const handleMockLogin = async () => {
+    if (!acceptedTerms) {
+      setErrorMessage('You must accept the Terms of Service & Privacy Policy to continue.');
+      return;
+    }
+    try {
+      setLoading(true);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const res = await axios.post(`${apiUrl}/api/auth/mock-login`);
+      if (res.data && res.data.token) {
+        localStorage.setItem('gmb_auth_token', res.data.token);
+        document.cookie = `gmb_auth_token=${res.data.token}; path=/; max-age=86400; SameSite=Lax`;
+        router.replace('/dashboard');
+      } else {
+        throw new Error('No token returned');
+      }
+    } catch (e: any) {
+      console.error('Failed mock login:', e);
+      setErrorMessage('Failed to sign in with local sandbox account.');
+      setLoading(false);
+    }
+  };
+
 
 
   // Avoid hydration mismatch by showing minimal content until mounted
@@ -253,6 +276,33 @@ function LoginContent() {
                 </>
               )}
             </button>
+
+            {/* Quick Demo / Sandbox Login Button for Local Testing */}
+            <div className="pt-2">
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-slate-800"></div>
+                <span className="flex-shrink mx-4 text-xs text-slate-500 font-medium">OR LOCAL TESTING</span>
+                <div className="flex-grow border-t border-slate-800"></div>
+              </div>
+              <button
+                id="mock-login-btn"
+                onClick={handleMockLogin}
+                disabled={loading}
+                className={`w-full flex items-center justify-center gap-2.5 px-4 py-3.5 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-violet-500/25 active:scale-[0.99] mt-2 ${
+                  !acceptedTerms ? 'opacity-40 cursor-not-allowed' : ''
+                }`}
+              >
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 text-violet-200" />
+                    <span>Quick Demo / Sandbox Login</span>
+                    <ArrowRight className="h-4 w-4 ml-auto" />
+                  </>
+                )}
+              </button>
+            </div>
 
 
 
