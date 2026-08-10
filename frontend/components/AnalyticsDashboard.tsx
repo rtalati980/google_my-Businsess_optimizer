@@ -7,8 +7,9 @@ import {
 } from 'recharts';
 import {
   TrendingUp, Users, Eye, MousePointer, Globe, Smartphone,
-  MapPin, Activity, Share2, Calendar, Loader, Download
+  MapPin, Activity, Share2, Calendar, Loader, Download, AlertCircle
 } from 'lucide-react';
+import api from '@/lib/api';
 
 interface MetricCard {
   title: string;
@@ -21,6 +22,7 @@ interface MetricCard {
 export default function AnalyticsDashboard() {
   const [metrics, setMetrics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
@@ -33,14 +35,15 @@ export default function AnalyticsDashboard() {
 
   const fetchAnalytics = async () => {
     setIsLoading(true);
+    setFetchError(null);
     try {
-      const response = await fetch(
+      const response = await api.get(
         `/api/analytics/summary?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`
       );
-      const data = await response.json();
-      setMetrics(data);
-    } catch (error) {
+      setMetrics(response.data);
+    } catch (error: any) {
       console.error('Failed to fetch analytics:', error);
+      setFetchError(error?.response?.data?.message || error?.message || 'Failed to load analytics data');
     } finally {
       setIsLoading(false);
     }
@@ -60,6 +63,32 @@ export default function AnalyticsDashboard() {
     return (
       <div className="w-full bg-white rounded-lg shadow-lg p-12 flex justify-center items-center">
         <Loader size={40} className="animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="w-full bg-white rounded-lg shadow-lg p-12 flex flex-col items-center justify-center gap-3">
+        <AlertCircle size={40} className="text-orange-500" />
+        <p className="text-gray-700 font-medium">Unable to load analytics</p>
+        <p className="text-gray-500 text-sm text-center max-w-md">{fetchError}</p>
+        <button
+          onClick={fetchAnalytics}
+          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!metrics) {
+    return (
+      <div className="w-full bg-white rounded-lg shadow-lg p-12 flex flex-col items-center justify-center gap-3">
+        <Activity size={40} className="text-gray-400" />
+        <p className="text-gray-600 font-medium">No analytics data available</p>
+        <p className="text-gray-400 text-sm">Analytics data will appear here once your profile starts receiving traffic.</p>
       </div>
     );
   }

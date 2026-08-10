@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation_state] = useState<Location | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
   const [gmbError, setGmbError] = useState<{ code: string; message: string } | null>(null);
@@ -87,7 +87,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Handle theme loading
   useEffect(() => {
     const savedTheme = localStorage.getItem('gmb_theme') as 'light' | 'dark';
-    const activeTheme = savedTheme || 'dark';
+    const activeTheme = savedTheme || 'light';
     setTheme(activeTheme);
     if (activeTheme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -109,7 +109,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center text-foreground">
         <Loader2 className="h-10 w-10 text-violet-500 animate-spin" />
       </div>
     }>
@@ -353,16 +353,17 @@ function DashboardWrapper({
     { name: 'Posts Builder', href: '/dashboard/posts', icon: Megaphone },
     { name: 'Weekly Reports', href: '/dashboard/reports', icon: FileText },
     { name: 'AI SEO Auditor', href: '/dashboard/seo', icon: TrendingUp },
+    { name: 'Growth Opportunities', href: '/dashboard/growth-opportunities', icon: Rocket },
     { name: 'Competitors', href: '/dashboard/competitors', icon: ShieldAlert },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+      <div className="min-h-screen flex items-center justify-center bg-white text-foreground">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-9 w-9 text-violet-500 animate-spin" />
-          <p className="text-sm text-slate-400">Loading your profile dashboard...</p>
+          <p className="text-sm text-muted-foreground">Loading your profile dashboard...</p>
         </div>
       </div>
     );

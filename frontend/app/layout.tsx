@@ -221,7 +221,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#0f172a" />
+        <meta name="theme-color" content="#ffffff" />
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="h-full bg-background text-foreground font-sans antialiased">
